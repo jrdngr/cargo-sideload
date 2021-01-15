@@ -150,7 +150,9 @@ dependencies = [
 name = "cargo-sideload"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "cargo",
+ "url",
 ]
 
 [[package]]

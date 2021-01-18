@@ -1,8 +1,10 @@
 [package]
 name = "cargo-sideload"
+description = "Download crates from your Cargo.lock to your local cargo cache with authentication."
 version = "0.1.0"
 authors = ["Jordan Grace <jordan.t.grace@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

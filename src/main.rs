@@ -9,8 +9,7 @@ use clap::Clap;
 
 fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
-    let args = std::env::args_os()
-        .filter(|arg| arg != "sideload");
+    let args = std::env::args_os().filter(|arg| arg != "sideload");
 
     let args = args::CargoSideloadArgs::parse_from(args);
     let config = Config::default()?;

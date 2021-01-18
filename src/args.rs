@@ -3,7 +3,7 @@ use std::{path::PathBuf, str::FromStr};
 use clap::Clap;
 
 #[derive(Clap, Debug, Clone)]
-pub struct Opts {
+pub struct CargoSideloadArgs {
     #[clap(short = 'r', long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,

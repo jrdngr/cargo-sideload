@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use url::Url;
 
 use crate::{
-    opts::{AuthHeader, Opts},
+    args::{AuthHeader, CargoSideloadArgs},
     utils::registry_index_url,
 };
 
@@ -22,8 +22,8 @@ pub struct Downloader<'cfg> {
 }
 
 impl<'cfg> Downloader<'cfg> {
-    pub fn new(config: &'cfg Config, opts: &Opts) -> anyhow::Result<Self> {
-        let index_url = registry_index_url(&config, &opts.registry)?;
+    pub fn new(config: &'cfg Config, args: &CargoSideloadArgs) -> anyhow::Result<Self> {
+        let index_url = registry_index_url(&config, &args.registry)?;
         let url = Url::parse(&index_url)?;
 
         let source_id = SourceId::for_registry(&url)?;
@@ -36,7 +36,7 @@ impl<'cfg> Downloader<'cfg> {
             config,
             registry,
             client,
-            auth_header: opts.auth_header.clone(),
+            auth_header: args.auth_header.clone(),
         })
     }
 

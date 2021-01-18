@@ -35,4 +35,5 @@ instead of attempting to download them.
 1. Write tests
 2. Automatically run `cargo update` for registry dependencies that are in `Cargo.toml` but not `Cargo.lock`.
 3. Deal with corrupt `.crate` files.
-4. Improve console output.
+4. Improve error handling.
+5. Improve console output.

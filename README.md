@@ -28,6 +28,10 @@ instead of attempting to download them.
    2. Run `cargo sideload --registry=[registry-name]` to download updated dependencies.
 2. If alternate registry dependences have **not** changed, you don't have to do anything.
 
+## Options
+- `--force` will force `cargo sideload` to download a new copy of the specified `.crate` files.
+  Previous copies of the `.crate` file for that crate will be deleted.
+
 ## Current restrictions
 1. Authentication is currently hardcoded for GitLab's `PRIVATE-TOKEN` header.
 

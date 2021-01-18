@@ -14,13 +14,14 @@ pub struct CargoSideloadArgs {
     /// Comma separated list of crates to download
     pub packages: Option<Vec<String>>,
     #[clap(
-        long = "auth-header",
-        env = "CARGO_SIDELOAD_AUTH_HEADER",
+        long = "headers",
+        env = "CARGO_SIDELOAD_HEADERS",
+        default_value = "Vec::new()",
         hide_env_values = true
     )]
-    /// Header to add to the download request in the format `[Header-Name]: [Header Value]`.  
+    /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
     /// Example: `Authorization: Bearer abcdefg12345`  
-    pub auth_header: Option<AuthHeader>,
+    pub headers: Vec<AuthHeader>,
     #[clap(long = "force")]
     /// Deletes any existing `.crate` file before downloading its replacement.
     pub force: bool,

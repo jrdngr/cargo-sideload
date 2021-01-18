@@ -60,8 +60,8 @@ impl<'cfg> Downloader<'cfg> {
 
                 let mut request_builder = self.client.get(&url);
 
-                if let Some(ref auth_header) = self.args.auth_header {
-                    request_builder = request_builder.header(&auth_header.name, &auth_header.value);
+                for header in &self.args.headers {
+                    request_builder = request_builder.header(&header.name, &header.value);
                 }
 
                 let body = request_builder.send()?.bytes()?;

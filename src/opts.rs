@@ -45,3 +45,18 @@ impl FromStr for AuthHeader {
         Ok(Self { name, value })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_auth_header() {
+        let auth_header = AuthHeader::from_str("Authorization: Bearer abcd1234").unwrap();
+        assert_eq!(auth_header.name, "Authorization");
+        assert_eq!(auth_header.value, "Bearer abcd1234");
+
+        assert!(AuthHeader::from_str("Authorization").is_err());
+        assert!(AuthHeader::from_str("").is_err());
+    }
+}

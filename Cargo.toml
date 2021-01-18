@@ -1,6 +1,6 @@
 [package]
 name = "cargo-sideload"
-description = "Download crates from your Cargo.lock to your local cargo cache with authentication."
+description = "Download .crate files associated with a particular cargo registry to your local cargo cache."
 version = "0.1.0"
 authors = ["Jordan Grace <jordan.t.grace@gmail.com>"]
 edition = "2018"

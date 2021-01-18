@@ -32,8 +32,9 @@ instead of attempting to download them.
 1. Authentication is currently hardcoded for GitLab's `PRIVATE-TOKEN` header.
 
 ## Remaining Work 
-1. Write tests
-2. Automatically run `cargo update` for registry dependencies that are in `Cargo.toml` but not `Cargo.lock`.
-3. Deal with corrupt `.crate` files.
-4. Improve error handling.
-5. Improve console output.
+1. Add subcommand to delete cache for the specified registry.
+2. Write tests.
+3. Automatically run `cargo update` for registry dependencies that are in `Cargo.toml` but not `Cargo.lock`.
+4. Deal with corrupt `.crate` files.
+5. Improve error handling.
+6. Improve console output.

@@ -4,12 +4,12 @@ use clap::Clap;
 
 #[derive(Clap)]
 pub struct Opts {
-    #[clap(long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
+    #[clap(short = 'r', long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
     pub registry: String,
     #[clap(long = "path", default_value = ".")]
     pub path: PathBuf,
     #[clap(
-        long = "access_token",
+        long = "access-token",
         env = "CARGO_SIDELOAD_ACCESS_TOKEN",
         hide_env_values = true
     )]

@@ -4,17 +4,13 @@ pub mod utils;
 
 use std::fs::canonicalize;
 
+use args::CargoSideloadArgs;
 use cargo::{core::Workspace, Config};
-use clap::Clap;
 
 fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
 
-    // Running `cargo sideload` will pass "sideload" as the first argument.
-    // Since this isn't a real argument in the definition, the command will fail.
-    let args = std::env::args_os().filter(|arg| arg != "sideload");
-
-    let args = args::CargoSideloadArgs::parse_from(args);
+    let args = CargoSideloadArgs::load();
     let config = Config::default()?;
 
     let mut downloader = download::Downloader::new(&config, &args)?;

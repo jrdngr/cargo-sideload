@@ -23,6 +23,24 @@ pub struct CargoSideloadArgs {
     pub auth_header: Option<AuthHeader>,
 }
 
+impl CargoSideloadArgs {    
+    pub fn load() -> Self {
+        // Running `cargo sideload` will pass "sideload" as the first argument.
+        // Since this isn't a real argument in the definition, the command will fail.
+        let args = std::env::args_os()
+            .enumerate()
+            .filter_map(|(index, arg)| {
+                if index == 1 && arg == "sideload" {
+                    None
+                } else {
+                    Some(arg)
+                }
+            });
+
+        Self::parse_from(args)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AuthHeader {
     pub name: String,

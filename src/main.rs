@@ -9,6 +9,9 @@ use clap::Clap;
 
 fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
+
+    // Running `cargo sideload` will pass "sideload" as the first argument.
+    // Since this isn't a real argument in the definition, the command will fail.
     let args = std::env::args_os().filter(|arg| arg != "sideload");
 
     let args = args::CargoSideloadArgs::parse_from(args);

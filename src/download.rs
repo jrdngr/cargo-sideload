@@ -9,14 +9,16 @@ use cargo::{
 use std::collections::HashSet;
 use url::Url;
 
-use crate::opts::Opts;
-use crate::utils::registry_index_url;
+use crate::{
+    opts::{AuthHeader, Opts},
+    utils::registry_index_url,
+};
 
 pub struct Downloader<'cfg> {
     config: &'cfg Config,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
-    access_token: Option<String>,
+    auth_header: Option<AuthHeader>,
 }
 
 impl<'cfg> Downloader<'cfg> {
@@ -34,7 +36,7 @@ impl<'cfg> Downloader<'cfg> {
             config,
             registry,
             client,
-            access_token: opts.access_token.clone(),
+            auth_header: opts.auth_header.clone(),
         })
     }
 
@@ -54,8 +56,8 @@ impl<'cfg> Downloader<'cfg> {
 
                 let mut request_builder = self.client.get(&url);
 
-                if let Some(ref token) = self.access_token {
-                    request_builder = request_builder.header("PRIVATE-TOKEN", token);
+                if let Some(ref auth_header) = self.auth_header {
+                    request_builder = request_builder.header(&auth_header.name, &auth_header.value);
                 }
 
                 let body = request_builder.send()?.bytes()?;

@@ -13,12 +13,12 @@ instead of attempting to download them.
 `cargo install cargo-sideload`
 
 ## First run
-1. [Add](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) your alternate registry to `~/.cargo/config`.
+1. [Add](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) your alternate registry to `~/.cargo/config.toml`.
 2. [Add](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) `registry = "[registry-name]"` to any dependencies that use the registry.
 3. Run `cargo update` to populate your `Cargo.lock` file.
 4. Run `cargo sideload --registry=[registry-name]` in your crate's root.
-   - Set `CARGO_SIDELOAD_ACCESS_TOKEN` in your shell or use the `--access-token` 
-   flag if your download endpoint requires authentication.
+   - Set `CARGO_SIDELOAD_AUTH_HEADER` in your shell or use the `--auth-header` 
+   flag if your download endpoint requires authentication. Format: `[Header-Name]: [Header Value]`.
 5. Your crates are now in the local cargo cache. `cargo` will use the local copies
    rather than attempt to download them.
 
@@ -32,7 +32,7 @@ instead of attempting to download them.
 1. Authentication is currently hardcoded for GitLab's `PRIVATE-TOKEN` header.
 
 ## Remaining Work 
-1. Generalize authentication.
+1. Write tests
 2. Automatically run `cargo update` for registry dependencies that are in `Cargo.toml` but not `Cargo.lock`.
 3. Deal with corrupt `.crate` files.
 4. Improve console output.

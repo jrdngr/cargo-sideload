@@ -1,19 +1,47 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::Clap;
 
-#[derive(Clap)]
+#[derive(Clap, Debug, Clone)]
 pub struct Opts {
     #[clap(short = 'r', long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
+    /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
     #[clap(long = "path", default_value = ".")]
+    /// Path to the `Cargo.toml` file of the crate you're running this command on.
     pub path: PathBuf,
+    #[clap(short = 'p', long = "packages")]
+    /// Comma separated list of crates to download
+    pub packages: Option<Vec<String>>,
     #[clap(
-        long = "access-token",
-        env = "CARGO_SIDELOAD_ACCESS_TOKEN",
+        long = "auth-header",
+        env = "CARGO_SIDELOAD_AUTH_HEADER",
         hide_env_values = true
     )]
-    pub access_token: Option<String>,
-    #[clap(short = 'p', long = "packages")]
-    pub packages: Option<Vec<String>>,
+    /// Header to add to the download request in the format `[Header-Name]: [Header Value]`.  
+    /// Example: `Authorization: Bearer abcdefg12345`  
+    pub auth_header: Option<AuthHeader>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AuthHeader {
+    pub name: String,
+    pub value: String,
+}
+
+impl FromStr for AuthHeader {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let split: Vec<&str> = s.splitn(2, ':').collect();
+
+        if split.len() != 2 {
+            anyhow::bail!("Invalid auth header format. Expected `[Header-Name]: [Header Value]`");
+        }
+
+        let name = split[0].to_string();
+        let value = split[1].trim_start().to_string();
+
+        Ok(Self { name, value })
+    }
 }

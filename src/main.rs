@@ -8,7 +8,7 @@ use cargo::{core::Workspace, Config};
 use clap::Clap;
 
 fn main() -> anyhow::Result<()> {
-    dotenv::dotenv()?;
+    dotenv::dotenv().ok();
     let opts = opts::Opts::parse();
     let config = Config::default()?;
 

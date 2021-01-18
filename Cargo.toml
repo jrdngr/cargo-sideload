@@ -7,6 +7,7 @@ edition = "2018"
 license = "MIT"
 repository = "https://github.com/picklenerd/cargo-sideload"
 homepage = "https://github.com/picklenerd/cargo-sideload"
+documentation = "https://docs.rs/crate/cargo-sideload/0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

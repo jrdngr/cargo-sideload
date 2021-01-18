@@ -32,7 +32,7 @@ instead of attempting to download them.
 1. Authentication is currently hardcoded for GitLab's `PRIVATE-TOKEN` header.
 
 ## Remaining Work 
-1. Add subcommand to delete cache for the specified registry.
+1. Validate crate file (e.g. ensure it's not just a 404 page)
 2. Write tests.
 3. Automatically run `cargo update` for registry dependencies that are in `Cargo.toml` but not `Cargo.lock`.
 4. Deal with corrupt `.crate` files.

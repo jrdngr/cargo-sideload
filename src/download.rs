@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use url::Url;
 
 use crate::{
-    args::{AuthHeader, CargoSideloadArgs},
+    args::CargoSideloadArgs,
     utils::registry_index_url,
 };
 
@@ -18,7 +18,7 @@ pub struct Downloader<'cfg> {
     config: &'cfg Config,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
-    auth_header: Option<AuthHeader>,
+    args: CargoSideloadArgs,
 }
 
 impl<'cfg> Downloader<'cfg> {
@@ -36,13 +36,17 @@ impl<'cfg> Downloader<'cfg> {
             config,
             registry,
             client,
-            auth_header: args.auth_header.clone(),
+            args: args.clone(),
         })
     }
 
     pub fn download(&mut self, name: &str, version: &str) -> anyhow::Result<()> {
         let source_id = self.registry.source_id();
         let package_id = PackageId::new(name, version, source_id)?;
+
+        if self.args.force {
+            self.delete_existing(source_id, package_id)?;
+        }
 
         let result = {
             let _package_cache_lock = self.config.acquire_package_cache_lock()?;
@@ -56,7 +60,7 @@ impl<'cfg> Downloader<'cfg> {
 
                 let mut request_builder = self.client.get(&url);
 
-                if let Some(ref auth_header) = self.auth_header {
+                if let Some(ref auth_header) = self.args.auth_header {
                     request_builder = request_builder.header(&auth_header.name, &auth_header.value);
                 }
 
@@ -65,7 +69,7 @@ impl<'cfg> Downloader<'cfg> {
                 let file_name = format!("{}-{}.crate", name, version);
 
                 {
-                    let file_lock = target_dir(source_id, &self.config).open_rw(
+                    let file_lock = self.target_dir(source_id).open_rw(
                         file_name,
                         &self.config,
                         "Waiting for file lock...",
@@ -81,11 +85,33 @@ impl<'cfg> Downloader<'cfg> {
 
         Ok(())
     }
-}
 
-fn target_dir(source_id: SourceId, config: &Config) -> Filesystem {
-    let registry_name = registry_name(source_id);
-    config.registry_cache_path().join(&registry_name)
+    fn target_dir(&self, source_id: SourceId) -> Filesystem {
+        let registry_name = registry_name(source_id);
+        self.config.registry_cache_path().join(&registry_name)
+    }
+
+    fn delete_existing(&self, source_id: SourceId, package_id: PackageId) -> anyhow::Result<()> {
+        let name = package_id.name();
+        let version = package_id.version().to_string();
+    
+        let file_name = format!("{}-{}.crate", name, version);
+    
+        {
+            let file_lock = self.target_dir(source_id).open_rw(
+                file_name,
+                &self.config,
+                "Waiting for file lock...",
+            )?;
+    
+            let file_path = file_lock.path();
+    
+            std::fs::remove_file(file_path)?;
+            println!("Removed: {:?}", file_path);
+        }
+    
+        Ok(())
+    }
 }
 
 // This function is copy/pasted from a private function in `cargo`

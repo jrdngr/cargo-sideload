@@ -21,6 +21,9 @@ pub struct CargoSideloadArgs {
     /// Header to add to the download request in the format `[Header-Name]: [Header Value]`.  
     /// Example: `Authorization: Bearer abcdefg12345`  
     pub auth_header: Option<AuthHeader>,
+    #[clap(long = "force")]
+    /// Deletes any existing `.crate` file before downloading its replacement.
+    pub force: bool,
 }
 
 impl CargoSideloadArgs {    

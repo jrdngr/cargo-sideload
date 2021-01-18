@@ -1,30 +1,42 @@
-use std::{collections::HashSet, path::PathBuf};
-use cargo::{
-    core::{
-        package_id::PackageId,
-        source::{Source, SourceId},
-    },
-    sources::registry::RegistrySource,
-    util::config::Config,
-};
-use url::Url;
+pub mod download;
+mod opts;
+pub mod utils;
 
-const INDEX_URL: &str = "https://github.com/picklenerd/my-index";
+use std::fs::canonicalize;
+
+use cargo::{core::Workspace, Config};
+use clap::Clap;
 
 fn main() -> anyhow::Result<()> {
-    let path = PathBuf::from(INDEX_URL);
-    let url = Url::parse(INDEX_URL)?;
-    let source_id = SourceId::for_registry(&url)?;
-    let yanked_whitelist = HashSet::new();
+    dotenv::dotenv()?;
+    let opts = opts::Opts::parse();
     let config = Config::default()?;
 
-    let mut registry = RegistrySource::remote(source_id, &yanked_whitelist, &config);
 
-    let package_id = PackageId::new("my_lib", "0.1.0", source_id)?;
+    let mut downloader = download::Downloader::new(&config, &opts)?;
 
-    {
-        config.acquire_package_cache_lock()?;
-        registry.download(package_id)?;
+    let manifest_path = canonicalize(opts.path.join("Cargo.toml"))?;
+    let workspace = Workspace::new(&manifest_path, &config)?;
+
+    let lock_file_path = canonicalize(opts.path.join("Cargo.lock"))?;
+    let lock_file = utils::parse_lockfile(&lock_file_path, &workspace)?;
+    
+    let registry_index_url = utils::registry_index_url(&config, &opts.registry)?;
+
+    for package_id in lock_file.iter() {
+        let name = package_id.name().to_string();
+        if let Some(packages) = &opts.packages {
+            if !packages.contains(&name) {
+                continue;
+            }
+        }
+
+        let url = package_id.source_id().url().to_string();
+        if url == registry_index_url {
+            
+            let version = package_id.version().to_string();
+            downloader.download(&name, &version)?;
+        }
     }
 
     Ok(())

@@ -8,5 +8,10 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
+base64 = "0.13"
 cargo = "0.50"
+clap = "3.0.0-beta.2"
+dotenv = "0.15"
+reqwest = { version = "0.11", features = ["blocking"] }
+toml = "0.5"
 url = "2.2"

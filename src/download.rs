@@ -4,25 +4,22 @@ use cargo::{
         source::{MaybePackage, Source, SourceId},
     },
     sources::registry::RegistrySource,
-    util::{config::Config, Filesystem},
+    util::{config::Config as CargoConfig, Filesystem},
 };
 use std::collections::HashSet;
 use url::Url;
 
-use crate::{
-    args::CargoSideloadArgs,
-    utils::registry_index_url,
-};
+use crate::{args::CargoSideloadArgs, utils::registry_index_url};
 
 pub struct Downloader<'cfg> {
-    config: &'cfg Config,
+    config: &'cfg CargoConfig,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
     args: CargoSideloadArgs,
 }
 
 impl<'cfg> Downloader<'cfg> {
-    pub fn new(config: &'cfg Config, args: &CargoSideloadArgs) -> anyhow::Result<Self> {
+    pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadArgs) -> anyhow::Result<Self> {
         let index_url = registry_index_url(&config, &args.registry)?;
         let url = Url::parse(&index_url)?;
 
@@ -64,9 +61,7 @@ impl<'cfg> Downloader<'cfg> {
                     request_builder = request_builder.header(&header.name, &header.value);
                 }
 
-                let body = request_builder.send()?
-                    .error_for_status()?
-                    .bytes()?;
+                let body = request_builder.send()?.error_for_status()?.bytes()?;
 
                 let file_name = format!("{}-{}.crate", name, version);
 
@@ -96,22 +91,22 @@ impl<'cfg> Downloader<'cfg> {
     fn delete_existing(&self, source_id: SourceId, package_id: PackageId) -> anyhow::Result<()> {
         let name = package_id.name();
         let version = package_id.version().to_string();
-    
+
         let file_name = format!("{}-{}.crate", name, version);
-    
+
         {
             let file_lock = self.target_dir(source_id).open_rw(
                 file_name,
                 &self.config,
                 "Waiting for file lock...",
             )?;
-    
+
             let file_path = file_lock.path();
-    
+
             std::fs::remove_file(file_path)?;
             println!("Removed: {:?}", file_path);
         }
-    
+
         Ok(())
     }
 }

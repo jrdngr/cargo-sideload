@@ -3,10 +3,10 @@ use std::path::Path;
 use cargo::{
     core::{resolver::EncodableResolve, Resolve, Workspace},
     ops::registry_configuration,
-    Config,
+    Config as CargoConfig,
 };
 
-pub fn registry_index_url(config: &Config, registry_name: &str) -> anyhow::Result<String> {
+pub fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
     match registry_configuration(config, Some(registry_name.into()))?.index {
         Some(index) => Ok(index),
         None => anyhow::bail!(

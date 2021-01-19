@@ -1,11 +1,15 @@
-use std::path::PathBuf;
 use clap::Clap;
+use std::path::PathBuf;
 
-use crate::config::Header;
+use crate::config::{Config, Header};
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadArgs {
-    #[clap(short = 'r', long = "registry")]
+    #[clap(
+        short = 'r',
+        long = "registry",
+        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
+    )]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
     #[clap(long = "path", default_value = ".")]
@@ -23,20 +27,30 @@ pub struct CargoSideloadArgs {
     pub force: bool,
 }
 
-impl CargoSideloadArgs {    
-    pub fn load() -> Self {
+impl CargoSideloadArgs {
+    pub fn load(config: &Config) -> Self {
+        if let Some(default_registry) = &config.default_registry {
+            std::env::set_var("CARGO_SIDELOAD_DEFAULT_REGISTRY", default_registry);
+        }
+
         // Running `cargo sideload` will pass "sideload" as the first argument.
         // Since this isn't a real argument in the definition, the command will fail.
-        let args = std::env::args_os()
-            .enumerate()
-            .filter_map(|(index, arg)| {
-                if index == 1 && arg == "sideload" {
-                    None
-                } else {
-                    Some(arg)
-                }
-            });
+        let args = std::env::args_os().enumerate().filter_map(|(index, arg)| {
+            if index == 1 && arg == "sideload" {
+                None
+            } else {
+                Some(arg)
+            }
+        });
 
-        Self::parse_from(args)
+        let mut result = Self::parse_from(args);
+
+        if let Some(registry) = config.registries.get(&result.registry) {
+            for header in &registry.headers {
+                result.headers.push(header.clone());
+            }
+        }
+
+        result
     }
 }

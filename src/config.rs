@@ -1,10 +1,10 @@
-use std::{collections::HashMap, convert::TryFrom, fmt::Display, str::FromStr};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, convert::TryFrom, fmt::Display, str::FromStr};
 
 pub const CONFIG_FILE_DIR: &str = "cargo-sideload";
 pub const CONFIG_FILE_NAME: &str = "config.toml";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     pub default_registry: Option<String>,
     pub registries: HashMap<String, RegistryConfig>,
@@ -22,7 +22,7 @@ impl Config {
                 } else {
                     Ok(None)
                 }
-            },
+            }
             None => Ok(None),
         }
     }
@@ -105,7 +105,7 @@ mod tests {
 
             [registries.other_registry]
             headers = [
-                "PRIVATE-KEY: iamagitlabtoken",
+                "PRIVATE-KEY: why_are_you_putting_this_here?",
             ]
         "#;
 
@@ -126,6 +126,6 @@ mod tests {
         let other_registry_config = config.registries.get("other_registry").unwrap();
         let header = &other_registry_config.headers[0];
         assert_eq!(header.name, "PRIVATE-KEY");
-        assert_eq!(header.value, "iamagitlabtoken");
+        assert_eq!(header.value, "why_are_you_putting_this_here?");
     }
 }

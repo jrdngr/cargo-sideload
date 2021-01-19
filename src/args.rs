@@ -1,6 +1,7 @@
-use std::{path::PathBuf, str::FromStr};
-
+use std::path::PathBuf;
 use clap::Clap;
+
+use crate::config::Header;
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadArgs {
@@ -16,7 +17,7 @@ pub struct CargoSideloadArgs {
     #[clap(long = "headers")]
     /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
     /// Example: `Authorization: Bearer abcdefg12345`  
-    pub headers: Vec<AuthHeader>,
+    pub headers: Vec<Header>,
     #[clap(long = "force")]
     /// Deletes any existing `.crate` file before downloading its replacement.
     pub force: bool,
@@ -37,43 +38,5 @@ impl CargoSideloadArgs {
             });
 
         Self::parse_from(args)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AuthHeader {
-    pub name: String,
-    pub value: String,
-}
-
-impl FromStr for AuthHeader {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let split: Vec<&str> = s.splitn(2, ':').collect();
-
-        if split.len() != 2 {
-            anyhow::bail!("Invalid auth header format. Expected `[Header-Name]: [Header Value]`");
-        }
-
-        let name = split[0].to_string();
-        let value = split[1].trim_start().to_string();
-
-        Ok(Self { name, value })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_auth_header() {
-        let auth_header = AuthHeader::from_str("Authorization: Bearer abcd1234").unwrap();
-        assert_eq!(auth_header.name, "Authorization");
-        assert_eq!(auth_header.value, "Bearer abcd1234");
-
-        assert!(AuthHeader::from_str("Authorization").is_err());
-        assert!(AuthHeader::from_str("").is_err());
     }
 }

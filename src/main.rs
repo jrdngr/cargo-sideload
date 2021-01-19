@@ -1,4 +1,5 @@
 mod args;
+pub mod config;
 pub mod download;
 pub mod utils;
 

@@ -12,8 +12,6 @@ fn main() -> anyhow::Result<()> {
 
     let args = CargoSideloadArgs::load();
 
-    dbg!(&args);
-
     let config = Config::default()?;
 
     let mut downloader = download::Downloader::new(&config, &args)?;

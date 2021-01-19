@@ -64,7 +64,9 @@ impl<'cfg> Downloader<'cfg> {
                     request_builder = request_builder.header(&header.name, &header.value);
                 }
 
-                let body = request_builder.send()?.bytes()?;
+                let body = request_builder.send()?
+                    .error_for_status()?
+                    .bytes()?;
 
                 let file_name = format!("{}-{}.crate", name, version);
 

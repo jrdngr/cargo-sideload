@@ -4,7 +4,7 @@ use clap::Clap;
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadArgs {
-    #[clap(short = 'r', long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
+    #[clap(short = 'r', long = "registry")]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
     #[clap(long = "path", default_value = ".")]
@@ -13,12 +13,7 @@ pub struct CargoSideloadArgs {
     #[clap(short = 'p', long = "packages")]
     /// Comma separated list of crates to download
     pub packages: Option<Vec<String>>,
-    #[clap(
-        long = "headers",
-        env = "CARGO_SIDELOAD_HEADERS",
-        default_value = "Vec::new()",
-        hide_env_values = true
-    )]
+    #[clap(long = "headers")]
     /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
     /// Example: `Authorization: Bearer abcdefg12345`  
     pub headers: Vec<AuthHeader>,

@@ -17,9 +17,8 @@ instead of attempting to download them.
 2. [Add](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) `registry = "[registry-name]"` to any dependencies that use the registry.
 3. Run `cargo update` to populate your `Cargo.lock` file.
 4. Run `cargo sideload --registry=[registry-name]` in your crate's root.
-   - Set `CARGO_SIDELOAD_HEADERS` in your shell or use the `--headers` argument
-   if your download endpoint requires authentication or other headers. 
-   Format: `[Header-Name]: [Header Value]`.
+   - Use the `--headers` argument if your download endpoint requires authentication or other headers.  
+   Header format: `[Header-Name]: [Header Value]`.
 5. Your crates are now in the local cargo cache. `cargo` will use the local copies
    rather than attempt to download them.
 

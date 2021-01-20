@@ -27,6 +27,7 @@ pub struct CargoSideloadArgs {
     pub force: bool,
     #[clap(long = "debug")]
     /// Prints debug information during execution.
+    /// WARNING: This will print your authorization headers to the console. Use with caution. 
     pub debug: bool,
 }
 

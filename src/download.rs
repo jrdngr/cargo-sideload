@@ -62,7 +62,17 @@ impl<'cfg> Downloader<'cfg> {
                     self.print_debug(format!("HEADER {}: {}", header.name, header.value));
                 }
 
-                let body = request_builder.send()?.error_for_status()?.bytes()?;
+                let response = request_builder.send()?;
+                if self.args.debug {
+                    println!("{:#?}", response);
+                }
+
+                let body = response.error_for_status()?.bytes()?;
+                if self.args.debug {
+                    println!("BODY");
+                    println!("{}", String::from_utf8_lossy(&body));
+                    println!("END");
+                }
 
                 let file_name = format!("{}-{}.crate", name, version);
 

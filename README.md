@@ -71,7 +71,7 @@ This will delete the existing file and download a new copy.
 
 If you try to run a normal Cargo command with a corrupt or otherwise invalid crate, 
 you'll get an error message something like the one below. If that happens, you most likely need to troubleshoot
-your download endpoint. Using `cargo sideload --force` makes troubleshooting easier.
+your download endpoint. Using `cargo sideload --debug --force` makes troubleshooting easier.
 
 ```
 error: failed to download `my_lib v0.1.0 (registry `https://github.com/picklenerd/test_registry`)`

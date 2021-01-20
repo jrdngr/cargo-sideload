@@ -25,6 +25,9 @@ pub struct CargoSideloadArgs {
     #[clap(long = "force")]
     /// Deletes any existing `.crate` file before downloading its replacement.
     pub force: bool,
+    #[clap(long = "debug")]
+    /// Prints debug information during execution. 
+    pub debug: bool,
 }
 
 impl CargoSideloadArgs {

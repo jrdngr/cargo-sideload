@@ -53,12 +53,13 @@ impl<'cfg> Downloader<'cfg> {
         match result {
             MaybePackage::Ready(_) => println!("{}-{} is already cached.", name, version),
             MaybePackage::Download { url, .. } => {
-                println!("Downloading: {}", url);
-
+                println!("Downloading: {}", url);                
                 let mut request_builder = self.client.get(&url);
+                self.print_debug(format!("GET {}", url));
 
                 for header in &self.args.headers {
                     request_builder = request_builder.header(&header.name, &header.value);
+                    self.print_debug(format!("HEADER {}: {}", header.name, header.value));
                 }
 
                 let body = request_builder.send()?.error_for_status()?.bytes()?;
@@ -108,6 +109,12 @@ impl<'cfg> Downloader<'cfg> {
         }
 
         Ok(())
+    }
+
+    fn print_debug(&self, text: impl std::fmt::Display) {
+        if self.args.debug {
+            println!("{}", text);
+        }
     }
 }
 

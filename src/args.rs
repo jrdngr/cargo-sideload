@@ -26,7 +26,7 @@ pub struct CargoSideloadArgs {
     /// Deletes any existing `.crate` file before downloading its replacement.
     pub force: bool,
     #[clap(long = "debug")]
-    /// Prints debug information during execution. 
+    /// Prints debug information during execution.
     pub debug: bool,
 }
 

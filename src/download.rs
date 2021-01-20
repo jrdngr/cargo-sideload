@@ -53,7 +53,7 @@ impl<'cfg> Downloader<'cfg> {
         match result {
             MaybePackage::Ready(_) => println!("{}-{} is already cached.", name, version),
             MaybePackage::Download { url, .. } => {
-                println!("Downloading: {}", url);                
+                println!("Downloading: {}", url);
                 let mut request_builder = self.client.get(&url);
                 self.print_debug(format!("GET {}", url));
 

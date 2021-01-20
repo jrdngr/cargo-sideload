@@ -40,6 +40,25 @@ of useful information about working with alternative registries.
 # More Info
 `cargo sideload --help` 
 
+# Config file
+Create the file `~/.config/cargo-sideload/config.toml`.
+
+The config file can be used to set a default registry and to associate headers with specific registries.
+This allows you to run the command as `cargo sideload` without providing `--registry` and `--headers` arguments. 
+
+```
+default_registry = "test_registry"
+  
+[registries.test_registry]
+headers = [ "Authorization: Blah abcd1234" ] 
+
+[registries.other_registry]
+headers = [ 
+        "PRIVATE-KEY: abcdef",
+        "Some-Other-Header: And its value",
+]
+```
+
 # Troubleshooting
 
 `cargo-sideload` does not (currently) validate the crates that it downloads. If you type your

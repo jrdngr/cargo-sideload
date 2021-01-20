@@ -96,16 +96,14 @@ mod tests {
     fn test_config() {
         let config_str = r#"
             default_registry = "test_registry"
-
+    
             [registries.test_registry]
-            headers = [
-                "Authorization: Blah abcd1234",
-                "Some-Other-Header: And its value",
-            ]
-
+            headers = [ "Authorization: Blah abcd1234" ] 
+            
             [registries.other_registry]
-            headers = [
-                "PRIVATE-KEY: why_are_you_putting_this_here?",
+            headers = [ 
+                    "PRIVATE-KEY: abcdef",
+                    "Some-Other-Header: And its value",
             ]
         "#;
 
@@ -119,13 +117,13 @@ mod tests {
         assert_eq!(first_header.name, "Authorization");
         assert_eq!(first_header.value, "Blah abcd1234");
 
-        let second_header = &test_registry_config.headers[1];
-        assert_eq!(second_header.name, "Some-Other-Header");
-        assert_eq!(second_header.value, "And its value");
-
         let other_registry_config = config.registries.get("other_registry").unwrap();
         let header = &other_registry_config.headers[0];
         assert_eq!(header.name, "PRIVATE-KEY");
-        assert_eq!(header.value, "why_are_you_putting_this_here?");
+        assert_eq!(header.value, "abcdef");
+
+        let second_header = &other_registry_config.headers[1];
+        assert_eq!(second_header.name, "Some-Other-Header");
+        assert_eq!(second_header.value, "And its value");
     }
 }

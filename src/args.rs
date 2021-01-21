@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use crate::config::{Config, Header};
 
 #[derive(Clap, Debug, Clone)]
+#[clap(about, version)]
 pub struct CargoSideloadArgs {
     #[clap(
         short = 'r',

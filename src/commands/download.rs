@@ -89,11 +89,15 @@ impl<'cfg> Downloader<'cfg> {
             MaybePackage::Download { url, .. } => {
                 println!("Downloading: {}", url);
                 let mut request_builder = self.client.get(&url);
-                self.print_debug(format!("GET {}", url));
+                if self.args.debug {
+                    println!("GET {}", url);
+                }
 
                 for header in &self.args.headers {
                     request_builder = request_builder.header(&header.name, &header.value);
-                    self.print_debug(format!("HEADER {}: {}", header.name, header.value));
+                    if self.args.debug {
+                        println!("HEADER {}: {}", header.name, header.value);
+                    }
                 }
 
                 let response = request_builder.send()?;
@@ -138,26 +142,17 @@ impl<'cfg> Downloader<'cfg> {
         let version = package_id.version().to_string();
 
         let file_name = format!("{}-{}.crate", name, version);
+        let file_lock = self.target_dir(source_id).open_rw(
+            file_name,
+            &self.config,
+            "Waiting for file lock...",
+        )?;
 
-        {
-            let file_lock = self.target_dir(source_id).open_rw(
-                file_name,
-                &self.config,
-                "Waiting for file lock...",
-            )?;
+        let file_path = file_lock.path();
 
-            let file_path = file_lock.path();
-
-            std::fs::remove_file(file_path)?;
-            println!("Removed: {:?}", file_path);
-        }
+        std::fs::remove_file(file_path)?;
+        println!("Removed: {:?}", file_path);
 
         Ok(())
-    }
-
-    fn print_debug(&self, text: impl std::fmt::Display) {
-        if self.args.debug {
-            println!("{}", text);
-        }
     }
 }

@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use cargo::{
-    core::{resolver::EncodableResolve, Resolve, Workspace},
+    core::{resolver::EncodableResolve, Resolve, SourceId, Workspace},
     ops::registry_configuration,
     Config as CargoConfig,
 };
@@ -26,4 +26,11 @@ pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
 
     let encodable_resolve: EncodableResolve = toml.try_into()?;
     Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
+}
+
+// This function is copy/pasted from a private function in `cargo`
+pub fn registry_name(id: SourceId) -> String {
+    let hash = cargo::util::hex::short_hash(&id);
+    let ident = id.url().host_str().unwrap_or("").to_string();
+    format!("{}-{}", ident, hash)
 }

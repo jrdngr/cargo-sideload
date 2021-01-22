@@ -129,7 +129,7 @@ impl<'cfg> Downloader<'cfg> {
     }
 
     fn target_dir(&self, source_id: SourceId) -> Filesystem {
-        let registry_name = registry_name(source_id);
+        let registry_name = utils::registry_name(source_id);
         self.config.registry_cache_path().join(&registry_name)
     }
 
@@ -160,11 +160,4 @@ impl<'cfg> Downloader<'cfg> {
             println!("{}", text);
         }
     }
-}
-
-// This function is copy/pasted from a private function in `cargo`
-fn registry_name(id: SourceId) -> String {
-    let hash = cargo::util::hex::short_hash(&id);
-    let ident = id.url().host_str().unwrap_or("").to_string();
-    format!("{}-{}", ident, hash)
 }

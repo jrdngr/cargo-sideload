@@ -39,17 +39,28 @@ pub fn list(args: CargoSideloadArgs, list_args: CargoSideloadListArgs) -> anyhow
 
     let file_path = file_lock.path();
     let package_info = std::fs::read_to_string(file_path)?;
-
-    let mut entries = Vec::<PackageEntry>::new();
-    for line in package_info.lines() {
-        let start_index = line.find("{").unwrap_or(0);
-        let trimmed_line = line.split_at(start_index);
-        entries.push(serde_json::from_str(&trimmed_line.1)?);
-    }
+    let entries = create_package_entries(&package_info)?;
 
     dbg!(entries);
 
     Ok(())
+}
+
+fn create_package_entries(package_info: &str) -> anyhow::Result<Vec<PackageEntry>> {
+    let package_entries = package_info
+        .lines()
+        .map(trim_package_line)
+        .map(serde_json::from_str)
+        .collect::<Result<Vec<PackageEntry>, _>>()?;
+
+    Ok(package_entries)
+}
+
+// This isn't hacky at all
+fn trim_package_line(line: &str) -> &str {
+    let start_index = line.find('{').unwrap_or(0);
+    let trimmed_line = line.split_at(start_index).1.trim_end_matches('\u{0}');
+    trimmed_line
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

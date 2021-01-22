@@ -65,14 +65,17 @@ impl CargoSideloadArgs {
 #[derive(Clap, Debug, Clone)]
 pub enum CargoSideloadSubcommand {
     /// List published version numbers for the specified crate. Does not include yanked versions.
-    List {
-        /// Name of the crate whose version numbers will be returned
-        name: String,
-        #[clap(long)]
-        /// Only return the latest version number
-        latest: bool,
-        #[clap(long = "include-yanked")]
-        /// Returns all yanked version numbers
-        yanked: bool,
-    },
+    List(CargoSideloadListArgs),
+}
+
+#[derive(Clap, Debug, Clone)]
+pub struct CargoSideloadListArgs {
+    /// Name of the crate whose version numbers will be returned
+    pub name: String,
+    #[clap(long)]
+    /// Only return the latest version number
+    pub latest: bool,
+    #[clap(long = "include-yanked")]
+    /// Returns all yanked version numbers
+    pub yanked: bool,
 }

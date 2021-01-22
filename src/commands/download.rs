@@ -1,4 +1,4 @@
-use std::fs::canonicalize;
+use std::{collections::HashSet, fs::canonicalize};
 
 use cargo::{
     core::{
@@ -9,7 +9,6 @@ use cargo::{
     sources::registry::RegistrySource,
     util::{config::Config as CargoConfig, Filesystem},
 };
-use std::collections::HashSet;
 use url::Url;
 
 use crate::{args::CargoSideloadArgs, utils};

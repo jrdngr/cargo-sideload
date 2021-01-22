@@ -28,9 +28,32 @@ pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
     Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
 }
 
-// This function is copy/pasted from a private function in `cargo`
+// This function is copy/pasted from a private function in Cargo.
 pub fn registry_name(id: SourceId) -> String {
     let hash = cargo::util::hex::short_hash(&id);
     let ident = id.url().host_str().unwrap_or("").to_string();
     format!("{}-{}", ident, hash)
+}
+
+// This function is copy/pasted from a private function in Cargo.
+pub fn package_dir(package_name: &str) -> String {
+    match package_name.len() {
+        1 => "1".to_string(),
+        2 => "2".to_string(),
+        3 => format!("3/{}", &package_name[..1]),
+        _ => format!("{}/{}", &package_name[0..2], &package_name[2..4]),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_package_dir() {
+        assert_eq!("1", package_dir("m"));
+        assert_eq!("2", package_dir("my"));
+        assert_eq!("3/m", package_dir("my_"));
+        assert_eq!("my/_l", package_dir("my_lib"));
+    }
 }

@@ -1,10 +1,7 @@
 use std::collections::HashSet;
 
-use cargo::{
-    core::source::{Source, SourceId},
-    sources::registry::RegistrySource,
-    util::config::Config as CargoConfig,
-};
+use cargo::{core::source::{Source, SourceId}, sources::registry::RegistrySource, util::config::Config as CargoConfig};
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -39,35 +36,65 @@ pub fn list(args: CargoSideloadArgs, list_args: CargoSideloadListArgs) -> anyhow
 
     let file_path = file_lock.path();
     let package_info = std::fs::read_to_string(file_path)?;
-    let entries = create_package_entries(&package_info)?;
+    let entries = create_package_entries(&package_info);
 
-    dbg!(entries);
+    if list_args.latest {
+        print_latest(&entries);
+    } else if list_args.yanked {
+        print_yanked(&entries)?;
+    } else {
+        print_published(&entries)?;
+    }
 
     Ok(())
 }
 
-fn create_package_entries(package_info: &str) -> anyhow::Result<Vec<PackageEntry>> {
-    let package_entries = package_info
-        .lines()
-        .map(trim_package_line)
-        .map(serde_json::from_str)
-        .collect::<Result<Vec<PackageEntry>, _>>()?;
+fn print_published(entries: &[PackageEntry]) -> anyhow::Result<()> {
+    for entry in entries {
+        if !entry.yanked {
+            println!("{}", serde_json::to_string_pretty(&entry)?);
+        }
+    }
 
-    Ok(package_entries)
+    Ok(())
 }
 
-// This isn't hacky at all
-fn trim_package_line(line: &str) -> &str {
-    let start_index = line.find('{').unwrap_or(0);
-    let trimmed_line = line.split_at(start_index).1.trim_end_matches('\u{0}');
-    trimmed_line
+fn print_latest(entries: &[PackageEntry]) {
+    let maybe_latest = entries.iter()
+        .filter(|entry| !entry.yanked)
+        .max_by(|e1, e2| e1.version.cmp(&e2.version));
+
+    match maybe_latest {
+        Some(latest) => println!("{}", latest.version),
+        None => println!("Package not found"),
+    }
+}
+
+fn print_yanked(entries: &[PackageEntry]) -> anyhow::Result<()> {
+    for entry in entries {
+        if entry.yanked {
+            println!("{}", serde_json::to_string_pretty(&entry)?);
+        }
+    }
+
+    Ok(())
+}
+
+// We get some useful lines along with some filler lines by splitting on '\u{0}'.
+// We'll just discard the filler lines and return whatever successfully parses.
+fn create_package_entries(package_info: &str) -> Vec<PackageEntry> {
+    package_info
+        .split('\u{0}')
+        .map(serde_json::from_str)
+        .flatten()
+        .collect()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PackageEntry {
     pub name: String,
     #[serde(rename = "vers")]
-    pub version: String,
+    pub version: Version,
     #[serde(rename = "cksum")]
     pub checksum: String,
     pub yanked: bool,

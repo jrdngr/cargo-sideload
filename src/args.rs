@@ -72,10 +72,10 @@ pub enum CargoSideloadSubcommand {
 pub struct CargoSideloadListArgs {
     /// Name of the crate whose version numbers will be returned
     pub name: String,
-    #[clap(long)]
+    #[clap(long, conflicts_with="yanked")]
     /// Only return the latest version number
     pub latest: bool,
-    #[clap(long = "include-yanked")]
+    #[clap(long)]
     /// Returns all yanked version numbers
     pub yanked: bool,
 }

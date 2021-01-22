@@ -28,8 +28,10 @@ pub struct CargoSideloadArgs {
     pub force: bool,
     #[clap(long = "debug")]
     /// Prints debug information during execution.
-    /// WARNING: This will print your authorization headers to the console. Use with caution. 
+    /// WARNING: This will print your authorization headers to the console. Use with caution.
     pub debug: bool,
+    #[clap(subcommand)]
+    pub subcommand: Option<CargoSideloadSubcommand>,
 }
 
 impl CargoSideloadArgs {
@@ -39,7 +41,7 @@ impl CargoSideloadArgs {
         }
 
         // Running `cargo sideload` will pass "sideload" as the first argument.
-        // Since this isn't a real argument in the definition, the command will fail.
+        // Since this isn't a real argument in the Clap definition, parsing the args will fail.
         let args = std::env::args_os().enumerate().filter_map(|(index, arg)| {
             if index == 1 && arg == "sideload" {
                 None
@@ -58,4 +60,19 @@ impl CargoSideloadArgs {
 
         result
     }
+}
+
+#[derive(Clap, Debug, Clone)]
+pub enum CargoSideloadSubcommand {
+    /// List published version numbers for the specified crate. Does not include yanked versions.
+    List {
+        /// Name of the crate whose version numbers will be returned
+        name: String,
+        #[clap(long)]
+        /// Only return the latest version number
+        latest: bool,
+        #[clap(long = "include-yanked")]
+        /// Returns all yanked version numbers
+        yanked: bool,
+    },
 }

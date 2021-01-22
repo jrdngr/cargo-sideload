@@ -35,6 +35,10 @@ pub fn list(args: CargoSideloadArgs, list_args: CargoSideloadListArgs) -> anyhow
         package_path.open_ro(&list_args.name, &cargo_config, "Waiting for file lock...")?;
 
     let file_path = file_lock.path();
+    if !file_path.exists() {
+        anyhow::bail!("No package found with name {}", list_args.name);
+    }
+
     let package_info = std::fs::read_to_string(file_path)?;
     let entries = create_package_entries(&package_info);
 

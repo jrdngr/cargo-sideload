@@ -9,6 +9,7 @@ use crate::{
 };
 
 fn main() -> anyhow::Result<()> {
+    pretty_env_logger::init();
     dotenv::dotenv().ok();
 
     let config = Config::load()?.unwrap_or_default();

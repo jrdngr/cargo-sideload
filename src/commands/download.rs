@@ -9,6 +9,7 @@ use cargo::{
     sources::registry::RegistrySource,
     util::{config::Config as CargoConfig, Filesystem},
 };
+use log::debug;
 use url::Url;
 
 use crate::{args::CargoSideloadArgs, utils};
@@ -88,28 +89,20 @@ impl<'cfg> Downloader<'cfg> {
             MaybePackage::Download { url, .. } => {
                 println!("Downloading: {}", url);
                 let mut request_builder = self.client.get(&url);
-                if self.args.debug {
-                    println!("GET {}", url);
-                }
+                debug!("GET {}", url);
 
                 for header in &self.args.headers {
                     request_builder = request_builder.header(&header.name, &header.value);
-                    if self.args.debug {
-                        println!("HEADER {}: {}", header.name, header.value);
-                    }
+                    debug!("HEADER {}: {}", header.name, header.value);
                 }
 
                 let response = request_builder.send()?;
-                if self.args.debug {
-                    println!("{:#?}", response);
-                }
+                debug!("{:#?}", response);
 
                 let body = response.error_for_status()?.bytes()?;
-                if self.args.debug {
-                    println!("BODY");
-                    println!("{}", String::from_utf8_lossy(&body));
-                    println!("END");
-                }
+                debug!("BODY");
+                debug!("{}", String::from_utf8_lossy(&body));
+                debug!("END");
 
                 let file_name = format!("{}-{}.crate", name, version);
 

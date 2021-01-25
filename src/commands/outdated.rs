@@ -2,7 +2,7 @@ use std::fs::canonicalize;
 
 use cargo::{core::Workspace, util::config::Config as CargoConfig};
 
-use crate::{args::CargoSideloadArgs, utils};
+use crate::{args::CargoSideloadArgs, package_entry::PackageEntry, utils};
 
 pub fn outdated(args: CargoSideloadArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
@@ -19,8 +19,19 @@ pub fn outdated(args: CargoSideloadArgs) -> anyhow::Result<()> {
 
     utils::update_index_packages(&cargo_config, &mut registry, &package_names)?;
 
-    for _package_id in packages {
-        // Check package
+    for package_id in packages {
+        let entries = PackageEntry::from_name(&cargo_config, &registry, &package_id.name())?;
+        match entries.iter().max() {
+            Some(latest) => {
+                println!(
+                    "{} {} -> {}",
+                    package_id.name(),
+                    package_id.version(),
+                    latest.version
+                );
+            }
+            None => println!("Package not found"),
+        }
     }
 
     Ok(())

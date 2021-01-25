@@ -17,7 +17,7 @@ fn main() -> anyhow::Result<()> {
     let args = CargoSideloadArgs::load(&config);
 
     match args{
-        CargoSideloadArgs::Download(dl_args) => commands::download(dl_args)?,
+        CargoSideloadArgs::Fetch(fetch_args) => commands::fetch(fetch_args)?,
         CargoSideloadArgs::List(list_args) => commands::list(list_args)?,
         CargoSideloadArgs::Outdated(od_args) => commands::outdated(od_args)?,
     }

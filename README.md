@@ -25,7 +25,7 @@ of useful information about working with alternative registries.
    my_lib = { version = "1.0", registry = "test_registry" }
    ```
 3. Run `cargo update` to let cargo sort out your dependencies and update your `Cargo.lock` file.
-4. Run `cargo sideload --registry=[registry-name]` in your crate's root.
+4. Run `cargo sideload fetch --registry=[registry-name]` in your crate's root.
    - Use the `--headers` argument if your download endpoint requires authentication or other headers.  
    Header format: `[Header-Name]: [Header Value]`.
 5. Your crates are now in the local cargo cache. `cargo` will use the local copies
@@ -34,7 +34,7 @@ of useful information about working with alternative registries.
 # Subsequent runs
 1. If alternate registry dependencies have changed
    1. Run `cargo update -p [crate-names]` to update your `Cargo.lock` file.
-   2. Run `cargo sideload --registry=[registry-name]` to download updated dependencies.
+   2. Run `cargo sideload fetch --registry=[registry-name]` to download updated dependencies.
 2. If alternate registry dependences have **not** changed, you don't have to do anything.
 
 # More Info
@@ -44,7 +44,7 @@ of useful information about working with alternative registries.
 Create the file `~/.config/cargo-sideload/config.toml`.
 
 The config file can be used to set a default registry and to associate headers with specific registries.
-This allows you to run the command as `cargo sideload` without providing `--registry` and `--headers` arguments. 
+This allows you to run the command as `cargo sideload fetch` without providing `--registry` and `--headers` arguments. 
 
 ```
 default_registry = "test_registry"
@@ -82,7 +82,7 @@ This will delete the existing file and download a new copy.
 
 If you try to run a normal Cargo command with a corrupt or otherwise invalid crate, 
 you'll get an error message something like the one below. If that happens, you most likely need to troubleshoot
-your download endpoint. Using `RUST_LOG=debug cargo sideload --force` makes troubleshooting easier.
+your download endpoint. Using `RUST_LOG=debug cargo sideload fetch --force` makes troubleshooting easier.
 
 ```
 error: failed to download `my_lib v0.1.0 (registry `https://github.com/picklenerd/test_registry`)`

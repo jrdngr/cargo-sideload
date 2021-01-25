@@ -7,7 +7,7 @@ use crate::config::{Config, Header};
 #[clap(about, version)]
 pub enum CargoSideloadArgs {
     /// Downloads all packages from the specified registry and places them in the local Cargo cache.
-    Download(CargoSideloadDownloadArgs),
+    Fetch(CargoSideloadFetchArgs),
     /// List published version numbers for the specified crate. Does not include yanked versions.
     List(CargoSideloadListArgs),
     /// List all crates associated with this registry that have newer versions available.
@@ -15,7 +15,7 @@ pub enum CargoSideloadArgs {
 }
 
 #[derive(Clap, Debug, Clone)]
-pub struct CargoSideloadDownloadArgs {
+pub struct CargoSideloadFetchArgs {
     #[clap(flatten)]
     pub common: CargoSideloadCommonArgs,
     #[clap(long = "headers")]
@@ -81,10 +81,10 @@ impl CargoSideloadArgs {
 
         let mut result = Self::parse_from(args);
 
-        if let CargoSideloadArgs::Download(ref mut dl_args) = &mut result {
-            if let Some(registry) = config.registries.get(&dl_args.common.registry) {
+        if let CargoSideloadArgs::Fetch(ref mut fetch_args) = &mut result {
+            if let Some(registry) = config.registries.get(&fetch_args.common.registry) {
                 for header in &registry.headers {
-                    dl_args.headers.push(header.clone());
+                    fetch_args.headers.push(header.clone());
                 }
             }    
         } 

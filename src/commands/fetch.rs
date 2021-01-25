@@ -12,9 +12,9 @@ use cargo::{
 use log::debug;
 use url::Url;
 
-use crate::{args::CargoSideloadDownloadArgs, utils};
+use crate::{args::CargoSideloadFetchArgs, utils};
 
-pub fn download(args: CargoSideloadDownloadArgs) -> anyhow::Result<()> {
+pub fn fetch(args: CargoSideloadFetchArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
 
     let mut downloader = Downloader::new(&cargo_config, &args)?;
@@ -33,11 +33,11 @@ pub struct Downloader<'cfg> {
     config: &'cfg CargoConfig,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
-    args: CargoSideloadDownloadArgs,
+    args: CargoSideloadFetchArgs,
 }
 
 impl<'cfg> Downloader<'cfg> {
-    pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadDownloadArgs) -> anyhow::Result<Self> {
+    pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadFetchArgs) -> anyhow::Result<Self> {
         let index_url = utils::registry_index_url(&config, &args.common.registry)?;
         let url = Url::parse(&index_url)?;
 

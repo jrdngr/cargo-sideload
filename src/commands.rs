@@ -1,7 +1,7 @@
-pub mod download;
+pub mod fetch;
 pub mod list;
 pub mod outdated;
 
-pub use download::download;
+pub use fetch::fetch;
 pub use list::list;
 pub use outdated::outdated;

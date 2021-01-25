@@ -10,13 +10,13 @@ use cargo::{
 };
 use url::Url;
 
-use crate::args::CargoSideloadArgs;
+use crate::args::CargoSideloadCommonArgs;
 
 pub fn create_registry<'cfg>(
     config: &'cfg CargoConfig,
-    args: &CargoSideloadArgs,
+    registry_name: &str,
 ) -> anyhow::Result<RegistrySource<'cfg>> {
-    let index_url = registry_index_url(&config, &args.registry)?;
+    let index_url = registry_index_url(&config, registry_name)?;
     let url = Url::parse(&index_url)?;
 
     let source_id = SourceId::for_registry(&url)?;
@@ -71,7 +71,7 @@ pub fn update_index_packages<S: Source>(
 
 pub fn list_registry_packages<'cfg>(
     config: &CargoConfig,
-    args: &CargoSideloadArgs,
+    args: &CargoSideloadCommonArgs,
     workspace: &Workspace<'cfg>,
 ) -> anyhow::Result<Vec<PackageId>> {
     let lock_file_path = canonicalize(args.path.join("Cargo.lock"))?;

@@ -5,7 +5,49 @@ use crate::config::{Config, Header};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(about, version)]
-pub struct CargoSideloadArgs {
+pub enum CargoSideloadArgs {
+    /// Downloads all packages from the specified registry and places them in the local Cargo cache.
+    Download(CargoSideloadDownloadArgs),
+    /// List published version numbers for the specified crate. Does not include yanked versions.
+    List(CargoSideloadListArgs),
+    /// List all crates associated with this registry that have newer versions available.
+    Outdated(CargoSideloadCommonArgs),
+}
+
+#[derive(Clap, Debug, Clone)]
+pub struct CargoSideloadDownloadArgs {
+    #[clap(flatten)]
+    pub common: CargoSideloadCommonArgs,
+    #[clap(long = "headers")]
+    /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
+    /// Example: `Authorization: Bearer abcdefg12345`  
+    pub headers: Vec<Header>,
+    #[clap(long = "force")]
+    /// Deletes any existing `.crate` file before downloading its replacement.
+    pub force: bool,
+}
+
+#[derive(Clap, Debug, Clone)]
+pub struct CargoSideloadListArgs {
+    #[clap(
+        short = 'r',
+        long = "registry",
+        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
+    )]
+    /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
+    pub registry: String,
+    /// Name of the crate whose version numbers will be returned
+    pub name: String,
+    #[clap(long, conflicts_with = "yanked")]
+    /// Only return the latest version number
+    pub latest: bool,
+    #[clap(long)]
+    /// Returns all yanked version numbers
+    pub yanked: bool,
+}
+
+#[derive(Clap, Debug, Clone)]
+pub struct CargoSideloadCommonArgs {
     #[clap(
         short = 'r',
         long = "registry",
@@ -19,15 +61,6 @@ pub struct CargoSideloadArgs {
     #[clap(short = 'p', long = "packages")]
     /// Comma separated list of crates to download
     pub packages: Option<Vec<String>>,
-    #[clap(long = "headers")]
-    /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
-    /// Example: `Authorization: Bearer abcdefg12345`  
-    pub headers: Vec<Header>,
-    #[clap(long = "force")]
-    /// Deletes any existing `.crate` file before downloading its replacement.
-    pub force: bool,
-    #[clap(subcommand)]
-    pub subcommand: Option<CargoSideloadSubcommand>,
 }
 
 impl CargoSideloadArgs {
@@ -48,32 +81,14 @@ impl CargoSideloadArgs {
 
         let mut result = Self::parse_from(args);
 
-        if let Some(registry) = config.registries.get(&result.registry) {
-            for header in &registry.headers {
-                result.headers.push(header.clone());
-            }
-        }
+        if let CargoSideloadArgs::Download(ref mut dl_args) = &mut result {
+            if let Some(registry) = config.registries.get(&dl_args.common.registry) {
+                for header in &registry.headers {
+                    dl_args.headers.push(header.clone());
+                }
+            }    
+        } 
 
         result
     }
-}
-
-#[derive(Clap, Debug, Clone)]
-pub enum CargoSideloadSubcommand {
-    /// List published version numbers for the specified crate. Does not include yanked versions.
-    List(CargoSideloadListArgs),
-    /// List all crates associated with this registry that have newer versions available.
-    Outdated,
-}
-
-#[derive(Clap, Debug, Clone)]
-pub struct CargoSideloadListArgs {
-    /// Name of the crate whose version numbers will be returned
-    pub name: String,
-    #[clap(long, conflicts_with = "yanked")]
-    /// Only return the latest version number
-    pub latest: bool,
-    #[clap(long)]
-    /// Returns all yanked version numbers
-    pub yanked: bool,
 }

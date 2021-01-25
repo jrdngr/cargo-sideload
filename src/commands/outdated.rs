@@ -2,14 +2,14 @@ use std::fs::canonicalize;
 
 use cargo::{core::Workspace, util::config::Config as CargoConfig};
 
-use crate::{args::CargoSideloadArgs, package_entry::PackageEntry, utils};
+use crate::{args::CargoSideloadCommonArgs, package_entry::PackageEntry, utils};
 
-pub fn outdated(args: CargoSideloadArgs) -> anyhow::Result<()> {
+pub fn outdated(args: CargoSideloadCommonArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
     let manifest_path = canonicalize(args.path.join("Cargo.toml"))?;
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 
-    let mut registry = utils::create_registry(&cargo_config, &args)?;
+    let mut registry = utils::create_registry(&cargo_config, &args.registry)?;
 
     let packages = utils::list_registry_packages(&cargo_config, &args, &workspace)?;
     let package_names: Vec<String> = packages

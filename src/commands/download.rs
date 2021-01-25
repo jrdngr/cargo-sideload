@@ -12,17 +12,17 @@ use cargo::{
 use log::debug;
 use url::Url;
 
-use crate::{args::CargoSideloadArgs, utils};
+use crate::{args::CargoSideloadDownloadArgs, utils};
 
-pub fn download(args: CargoSideloadArgs) -> anyhow::Result<()> {
+pub fn download(args: CargoSideloadDownloadArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
 
     let mut downloader = Downloader::new(&cargo_config, &args)?;
 
-    let manifest_path = canonicalize(args.path.join("Cargo.toml"))?;
+    let manifest_path = canonicalize(args.common.path.join("Cargo.toml"))?;
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 
-    for package_id in utils::list_registry_packages(&cargo_config, &args, &workspace)? {
+    for package_id in utils::list_registry_packages(&cargo_config, &args.common, &workspace)? {
         downloader.download(&package_id.name(), &package_id.version().to_string())?;
     }
 
@@ -33,12 +33,12 @@ pub struct Downloader<'cfg> {
     config: &'cfg CargoConfig,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
-    args: CargoSideloadArgs,
+    args: CargoSideloadDownloadArgs,
 }
 
 impl<'cfg> Downloader<'cfg> {
-    pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadArgs) -> anyhow::Result<Self> {
-        let index_url = utils::registry_index_url(&config, &args.registry)?;
+    pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadDownloadArgs) -> anyhow::Result<Self> {
+        let index_url = utils::registry_index_url(&config, &args.common.registry)?;
         let url = Url::parse(&index_url)?;
 
         let source_id = SourceId::for_registry(&url)?;

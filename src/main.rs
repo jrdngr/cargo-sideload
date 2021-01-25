@@ -5,7 +5,7 @@ pub mod package_entry;
 pub mod utils;
 
 use crate::{
-    args::{CargoSideloadArgs, CargoSideloadSubcommand},
+    args::CargoSideloadArgs,
     config::Config,
 };
 
@@ -14,15 +14,12 @@ fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
 
     let config = Config::load()?.unwrap_or_default();
-    let mut args = CargoSideloadArgs::load(&config);
+    let args = CargoSideloadArgs::load(&config);
 
-    if let Some(subcommand) = args.subcommand.take() {
-        match subcommand {
-            CargoSideloadSubcommand::List(list_args) => commands::list(args, list_args)?,
-            CargoSideloadSubcommand::Outdated => commands::outdated(args)?,
-        }
-    } else {
-        commands::download(args)?;
+    match args{
+        CargoSideloadArgs::Download(dl_args) => commands::download(dl_args)?,
+        CargoSideloadArgs::List(list_args) => commands::list(list_args)?,
+        CargoSideloadArgs::Outdated(od_args) => commands::outdated(od_args)?,
     }
 
     Ok(())

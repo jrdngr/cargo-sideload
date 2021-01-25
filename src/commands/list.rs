@@ -1,10 +1,6 @@
 use cargo::{core::source::Source, util::config::Config as CargoConfig};
 
-use crate::{
-    args::CargoSideloadListArgs,
-    package_entry::PackageEntry,
-    utils,
-};
+use crate::{args::CargoSideloadListArgs, package_entry::PackageEntry, utils};
 
 pub fn list(args: CargoSideloadListArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
@@ -18,8 +14,7 @@ pub fn list(args: CargoSideloadListArgs) -> anyhow::Result<()> {
         .join(".cache")
         .join(utils::package_dir(&args.name));
 
-    let file_lock =
-        package_path.open_ro(&args.name, &cargo_config, "Waiting for file lock...")?;
+    let file_lock = package_path.open_ro(&args.name, &cargo_config, "Waiting for file lock...")?;
 
     let file_path = file_lock.path();
     if !file_path.exists() {

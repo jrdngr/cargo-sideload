@@ -86,8 +86,8 @@ impl CargoSideloadArgs {
                 for header in &registry.headers {
                     fetch_args.headers.push(header.clone());
                 }
-            }    
-        } 
+            }
+        }
 
         result
     }

@@ -18,6 +18,7 @@ fn main() -> anyhow::Result<()> {
     if let Some(subcommand) = args.subcommand.take() {
         match subcommand {
             CargoSideloadSubcommand::List(list_args) => commands::list(args, list_args)?,
+            CargoSideloadSubcommand::Outdated => commands::outdated(args)?,
         }
     } else {
         commands::download(args)?;

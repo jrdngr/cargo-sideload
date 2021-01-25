@@ -1,16 +1,6 @@
-use std::collections::HashSet;
-
-use cargo::{
-    core::{
-        source::{Source, SourceId},
-        Dependency,
-    },
-    sources::registry::RegistrySource,
-    util::config::Config as CargoConfig,
-};
+use cargo::{core::source::Source, util::config::Config as CargoConfig};
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use url::Url;
 
 use crate::{
     args::{CargoSideloadArgs, CargoSideloadListArgs},
@@ -19,27 +9,13 @@ use crate::{
 
 pub fn list(args: CargoSideloadArgs, list_args: CargoSideloadListArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
-    let index_url = utils::registry_index_url(&cargo_config, &args.registry)?;
-    let url = Url::parse(&index_url)?;
+    let mut registry = utils::create_registry(&cargo_config, &args)?;
 
-    let source_id = SourceId::for_registry(&url)?;
-    let yanked_whitelist = HashSet::new();
-
-    let mut registry = RegistrySource::remote(source_id, &yanked_whitelist, &cargo_config);
-
-    {
-        let _package_cache_lock = cargo_config.acquire_package_cache_lock()?;
-        // Fetch the updated index repo
-        registry.update()?;
-
-        // Query the dependency to create/update the file we're going to read below
-        let dep = Dependency::new_override(list_args.name.clone().into(), source_id);
-        registry.query(&dep, &mut |_| {})?;
-    }
+    utils::update_index_packages(&cargo_config, &mut registry, &vec![list_args.name.clone()])?;
 
     let package_path = cargo_config
         .registry_index_path()
-        .join(utils::registry_name(source_id))
+        .join(utils::registry_name(registry.source_id()))
         .join(".cache")
         .join(utils::package_dir(&list_args.name));
 

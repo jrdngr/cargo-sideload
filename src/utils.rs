@@ -1,10 +1,33 @@
-use std::path::Path;
+use std::{collections::HashSet, fs::canonicalize, path::Path};
 
 use cargo::{
-    core::{resolver::EncodableResolve, Resolve, SourceId, Workspace},
+    core::{
+        resolver::EncodableResolve, Dependency, PackageId, Resolve, Source, SourceId, Workspace,
+    },
     ops::registry_configuration,
+    sources::RegistrySource,
     Config as CargoConfig,
 };
+use url::Url;
+
+use crate::args::CargoSideloadArgs;
+
+pub fn create_registry<'cfg>(
+    config: &'cfg CargoConfig,
+    args: &CargoSideloadArgs,
+) -> anyhow::Result<RegistrySource<'cfg>> {
+    let index_url = registry_index_url(&config, &args.registry)?;
+    let url = Url::parse(&index_url)?;
+
+    let source_id = SourceId::for_registry(&url)?;
+    let yanked_whitelist = HashSet::new();
+
+    Ok(RegistrySource::remote(
+        source_id,
+        &yanked_whitelist,
+        &config,
+    ))
+}
 
 pub fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
     match registry_configuration(config, Some(registry_name.into()))?.index {
@@ -26,6 +49,53 @@ pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
 
     let encodable_resolve: EncodableResolve = toml.try_into()?;
     Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
+}
+
+pub fn update_index_packages<S: Source>(
+    config: &CargoConfig,
+    source: &mut S,
+    packages: &[String],
+) -> anyhow::Result<()> {
+    let _package_cache_lock = config.acquire_package_cache_lock()?;
+    // Fetch the updated index repo
+    source.update()?;
+
+    // Query the dependencies to create/update the file we're going to read below
+    for package in packages {
+        let dep = Dependency::new_override(package.into(), source.source_id());
+        source.query(&dep, &mut |_| {})?;
+    }
+
+    Ok(())
+}
+
+pub fn list_registry_packages<'cfg>(
+    config: &CargoConfig,
+    args: &CargoSideloadArgs,
+    workspace: &Workspace<'cfg>,
+) -> anyhow::Result<Vec<PackageId>> {
+    let lock_file_path = canonicalize(args.path.join("Cargo.lock"))?;
+    let lock_file = parse_lockfile(&lock_file_path, &workspace)?;
+
+    let registry_index_url = registry_index_url(config, &args.registry)?;
+
+    let mut packages = Vec::new();
+
+    for package_id in lock_file.iter() {
+        let name = package_id.name().to_string();
+        if let Some(packages) = &args.packages {
+            if !packages.contains(&name) {
+                continue;
+            }
+        }
+
+        let url = package_id.source_id().url().to_string();
+        if url == registry_index_url {
+            packages.push(package_id);
+        }
+    }
+
+    Ok(packages)
 }
 
 // This function is copy/pasted from a private function in Cargo.

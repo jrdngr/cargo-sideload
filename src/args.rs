@@ -62,6 +62,8 @@ impl CargoSideloadArgs {
 pub enum CargoSideloadSubcommand {
     /// List published version numbers for the specified crate. Does not include yanked versions.
     List(CargoSideloadListArgs),
+    /// List all crates associated with this registry that have newer versions available.
+    Outdated,
 }
 
 #[derive(Clap, Debug, Clone)]

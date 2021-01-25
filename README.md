@@ -59,6 +59,17 @@ headers = [
 ]
 ```
 
+# Extra Tools
+`cargo-sideload` comes with a few extra tools for working with private registries.
+
+`cargo sideload list [crate-name]` will list some information about each available version of the specified crate.
+Yanked versions are not included in the reuslt. Using `--latest` will print the latest non-yanked version of the crate. 
+`--yank` will list metadata about all yanked versions of the crate. 
+
+`cargo sideload outdated --registry=[registry-name]` will list all dependencies with newer versions available 
+in the specified registry. `--registry` is optional if you have a default registry set. A list of crates to check
+can be specified with `--packages`.
+
 # Troubleshooting
 
 `cargo-sideload` does not (currently) validate the crates that it downloads. If you type your

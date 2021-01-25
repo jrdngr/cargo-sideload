@@ -1,6 +1,13 @@
 use std::collections::HashSet;
 
-use cargo::{core::source::{Source, SourceId}, sources::registry::RegistrySource, util::config::Config as CargoConfig};
+use cargo::{
+    core::{
+        source::{Source, SourceId},
+        Dependency,
+    },
+    sources::registry::RegistrySource,
+    util::config::Config as CargoConfig,
+};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -22,7 +29,12 @@ pub fn list(args: CargoSideloadArgs, list_args: CargoSideloadListArgs) -> anyhow
 
     {
         let _package_cache_lock = cargo_config.acquire_package_cache_lock()?;
+        // Fetch the updated index repo
         registry.update()?;
+
+        // Query the dependency to create/update the file we're going to read below
+        let dep = Dependency::new_override(list_args.name.clone().into(), source_id);
+        registry.query(&dep, &mut |_| {})?;
     }
 
     let package_path = cargo_config
@@ -64,7 +76,8 @@ fn print_published(entries: &[PackageEntry]) -> anyhow::Result<()> {
 }
 
 fn print_latest(entries: &[PackageEntry]) {
-    let maybe_latest = entries.iter()
+    let maybe_latest = entries
+        .iter()
         .filter(|entry| !entry.yanked)
         .max_by(|e1, e2| e1.version.cmp(&e2.version));
 

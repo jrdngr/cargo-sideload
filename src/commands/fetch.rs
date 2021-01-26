@@ -3,7 +3,7 @@ use std::fs::canonicalize;
 use cargo::{
     core::{
         package_id::PackageId,
-        source::{MaybePackage, Source, SourceId},
+        source::{MaybePackage, Source},
         Workspace,
     },
     sources::registry::RegistrySource,
@@ -57,54 +57,22 @@ impl<'cfg> Downloader<'cfg> {
             self.delete_existing(package_id)?;
         }
 
-        let maybe_package = self.download_crate_file(package_id)?;
-
-        match maybe_package {
-            MaybePackage::Ready(_) => println!("{}-{} is already cached.", name, version),
-            MaybePackage::Download { url, .. } => {
-                println!("Downloading: {}", url);
-                let mut request_builder = self.client.get(&url);
-                debug!("GET {}", url);
-
-                for header in &self.args.headers {
-                    request_builder = request_builder.header(&header.name, &header.value);
-                    debug!("HEADER {}: {}", header.name, header.value);
-                }
-
-                let response = request_builder.send()?;
-                debug!("{:#?}", response);
-
-                let body = response.error_for_status()?.bytes()?;
-                debug!("BODY");
-                debug!("{}", String::from_utf8_lossy(&body));
-                debug!("END");
-
-                let file_name = format!("{}-{}.crate", name, version);
-
-                {
-                    let file_lock = self.target_dir(source_id).open_rw(
-                        file_name,
-                        &self.config,
-                        "Waiting for file lock...",
-                    )?;
-
-                    let file_path = file_lock.path();
-
-                    std::fs::write(file_path, body)?;
-                    println!("Downloaded: {:?}", file_path);
-                }
-
-                // The code to unpack the crate is private, but we can trigger it by calling `Source::download` again.
-                // This will see that the cached file is already present and attempt to unpack it.
-                self.download_crate_file(package_id)?;
-            }
+        match self.package_status(package_id)? {
+            MaybePackage::Ready(_) => println!(
+                "{}-{} is already cached.",
+                package_id.name(),
+                package_id.version()
+            ),
+            MaybePackage::Download { url, .. } => self.download_package(package_id, &url)?,
         }
 
         Ok(())
     }
 
-    fn download_crate_file(&mut self, package_id: PackageId) -> anyhow::Result<MaybePackage> {
+    fn package_status(&mut self, package_id: PackageId) -> anyhow::Result<MaybePackage> {
         let _package_cache_lock = self.config.acquire_package_cache_lock()?;
+        // This method won't actually start a download.
+        // If the .crate file is already in the cache it'll unpack it, otherwise it will return the download url
         let result = self.registry.download(package_id);
 
         if result.is_err() {
@@ -118,9 +86,48 @@ impl<'cfg> Downloader<'cfg> {
         result
     }
 
+    fn download_package(&mut self, package_id: PackageId, url: &str) -> anyhow::Result<()> {
+        println!("Downloading: {}", url);
+
+        let mut request_builder = self.client.get(url);
+        debug!("GET {}", url);
+
+        for header in &self.args.headers {
+            request_builder = request_builder.header(&header.name, &header.value);
+            debug!("HEADER {}: {}", header.name, header.value);
+        }
+
+        let response = request_builder.send()?;
+        debug!("{:#?}", response);
+
+        let body = response.error_for_status()?.bytes()?;
+        debug!("BODY");
+        debug!("{}", String::from_utf8_lossy(&body));
+        debug!("END");
+
+        let file_name = format!("{}-{}.crate", package_id.name(), package_id.version());
+
+        {
+            let file_lock =
+                self.target_dir()
+                    .open_rw(file_name, &self.config, "Waiting for file lock...")?;
+
+            let file_path = file_lock.path();
+
+            std::fs::write(file_path, body)?;
+            println!("Downloaded: {:?}", file_path);
+        }
+
+        // The code to unpack the crate is private, but we can trigger it by calling `Source::download` again.
+        // This will see that the cached file is already present and attempt to unpack it.
+        self.package_status(package_id)?;
+
+        Ok(())
+    }
+
     /// Package cache path for the specified registry
-    fn target_dir(&self, source_id: SourceId) -> Filesystem {
-        let registry_directory = utils::registry_directory(source_id);
+    fn target_dir(&self) -> Filesystem {
+        let registry_directory = utils::registry_directory(self.registry.source_id());
         self.config.registry_cache_path().join(&registry_directory)
     }
 
@@ -130,11 +137,9 @@ impl<'cfg> Downloader<'cfg> {
         let version = package_id.version().to_string();
 
         let file_name = format!("{}-{}.crate", name, version);
-        let file_lock = self.target_dir(self.registry.source_id()).open_rw(
-            file_name,
-            &self.config,
-            "Waiting for file lock...",
-        )?;
+        let file_lock =
+            self.target_dir()
+                .open_rw(file_name, &self.config, "Waiting for file lock...")?;
 
         let file_path = file_lock.path();
 

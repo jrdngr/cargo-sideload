@@ -6,11 +6,11 @@ use crate::config::{Config, Header};
 #[derive(Clap, Debug, Clone)]
 #[clap(about, version)]
 pub enum CargoSideloadArgs {
-    /// Downloads all packages from the specified registry and places them in the local Cargo cache.
+    /// Downloads all packages in your `Cargo.toml` and places them in the local Cargo cache, limited to the specified registry.
     Fetch(CargoSideloadFetchArgs),
-    /// List published version numbers for the specified crate. Does not include yanked versions.
+    /// List some info for all published versions of the specified crate. Does not include yanked versions.
     List(CargoSideloadListArgs),
-    /// List all crates associated with this registry that have newer versions available.
+    /// List all crates in your `Cargo.toml` that have newer versions available, limited to the specified registry.
     Outdated(CargoSideloadOutdatedArgs),
 }
 #[derive(Clap, Debug, Clone)]
@@ -26,7 +26,7 @@ pub struct CargoSideloadCommonArgs {
     /// Path to the `Cargo.toml` file of the crate you're running this command on.
     pub path: PathBuf,
     #[clap(short = 'p', long = "packages")]
-    /// Comma separated list of crates to download
+    /// List of crates to run this command on.
     pub packages: Option<Vec<String>>,
 }
 
@@ -45,7 +45,7 @@ pub struct CargoSideloadFetchArgs {
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadListArgs {
-    /// Name of the crate whose version numbers will be returned
+    /// Name of the crate whose info will be returned
     pub name: String,
     #[clap(
         short = 'r',

@@ -45,6 +45,8 @@ pub struct CargoSideloadFetchArgs {
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadListArgs {
+    /// Name of the crate whose version numbers will be returned
+    pub name: String,
     #[clap(
         short = 'r',
         long = "registry",
@@ -52,11 +54,12 @@ pub struct CargoSideloadListArgs {
     )]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
-    /// Name of the crate whose version numbers will be returned
-    pub name: String,
     #[clap(long)]
-    /// Only return the latest version number
+    /// Only return the latest package
     pub latest: bool,
+    #[clap(long = "latest-version", conflicts_with = "latest")]
+    /// Only return the latest version number
+    pub latest_version: bool,
 }
 
 #[derive(Clap, Debug, Clone)]

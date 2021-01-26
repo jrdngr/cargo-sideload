@@ -63,7 +63,8 @@ headers = [
 because existing tools don't always work with private registries.
 
 `cargo sideload list [crate-name]` will list some information about each available version of the specified crate.
-Yanked versions are not included in the reuslt. Using `--latest` will print the latest version of the crate. 
+Yanked versions are not included in the result. Using `--latest` will print the info for the latest version of the crate,
+while `--latest-version` will only return the latest version number.
 
 `cargo sideload outdated --registry=[registry-name]` will list all dependencies with newer versions available 
 in the specified registry. `--registry` is optional if you have a default registry set. A list of crates to check

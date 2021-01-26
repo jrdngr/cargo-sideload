@@ -10,7 +10,9 @@ pub fn list(args: CargoSideloadListArgs) -> anyhow::Result<()> {
     let summaries = utils::package_summaries(&cargo_config, &mut registry, &args.name)?;
 
     if args.latest {
-        print_latest(&summaries);
+        print_latest(&summaries, false);
+    } else if args.latest_version {
+        print_latest(&summaries, true);
     } else {
         print_published(&summaries);
     }
@@ -24,12 +26,13 @@ fn print_published(summaries: &[Summary]) {
     }
 }
 
-fn print_latest(summaries: &[Summary]) {
-    let latest = utils::latest_version(summaries);
+fn print_latest(summaries: &[Summary], version_only: bool) {
+    let latest_version = utils::latest_version(summaries);
 
-    match latest {
-        Some(latest) => println!("{}", latest.version()),
-        None => println!("Package not found"),
+    match (latest_version, version_only) {
+        (Some(latest), true) => println!("{}", latest.version()),
+        (Some(latest), false) => print_summary(latest),
+        _ => println!("Package not found"),
     }
 }
 

@@ -30,7 +30,9 @@ pub fn create_registry<'cfg>(
 }
 
 pub fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
-    match cargo::ops::registry_configuration(config, Some(registry_name.into()))?.index {
+    let registry_config = cargo::ops::registry_configuration(config, Some(registry_name.into()))?;
+
+    match registry_config.index {
         Some(index) => Ok(index),
         None => anyhow::bail!(
             "No index available for registry named \"{}\"",
@@ -51,9 +53,9 @@ pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
     Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
 }
 
+/// Updates the local copy of a registry index
 pub fn update_index<S: Source>(config: &CargoConfig, source: &mut S) -> anyhow::Result<()> {
     let _package_cache_lock = config.acquire_package_cache_lock()?;
-    // Fetch the updated index repo
     source.update()
 }
 
@@ -76,7 +78,7 @@ pub fn latest_version(summaries: &[Summary]) -> Option<&Summary> {
     summaries.iter().max_by_key(|summary| summary.version())
 }
 
-pub fn list_registry_packages<'cfg>(
+pub fn workspace_packages<'cfg>(
     config: &CargoConfig,
     args: &CargoSideloadCommonArgs,
     workspace: &Workspace<'cfg>,
@@ -110,14 +112,18 @@ pub fn list_registry_packages<'cfg>(
     Ok(packages)
 }
 
-// This function is copy/pasted from a private function in Cargo.
-pub fn registry_name(id: SourceId) -> String {
+/// Returns the name of the registry's directory in the local cache.
+/// The result is in the format `[registry_name]-[hash]`
+/// This function is copy/pasted from a private function in Cargo.
+pub fn registry_directory(id: SourceId) -> String {
     let hash = cargo::util::hex::short_hash(&id);
     let ident = id.url().host_str().unwrap_or("").to_string();
     format!("{}-{}", ident, hash)
 }
 
-// This function is copy/pasted from a private function in Cargo.
+/// Returns the directory structure for the specified package name.
+/// This directory structure is defined by the Cargo index spec
+/// This function is copy/pasted from a private function in Cargo.
 pub fn package_dir(package_name: &str) -> String {
     match package_name.len() {
         1 => "1".to_string(),

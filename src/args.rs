@@ -70,6 +70,7 @@ pub struct CargoSideloadOutdatedArgs {
 
 impl CargoSideloadArgs {
     pub fn load(config: &Config) -> Self {
+        // Set the default registry from the user's config file before parsing the arguments
         if let Some(default_registry) = &config.default_registry {
             std::env::set_var("CARGO_SIDELOAD_DEFAULT_REGISTRY", default_registry);
         }
@@ -86,6 +87,7 @@ impl CargoSideloadArgs {
 
         let mut result = Self::parse_from(args);
 
+        // Add headers from the user's config file to the arg headers
         if let CargoSideloadArgs::Fetch(ref mut fetch_args) = &mut result {
             if let Some(registry) = config.registries.get(&fetch_args.common.registry) {
                 for header in &registry.headers {

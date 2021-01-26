@@ -13,7 +13,7 @@ pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 
     let mut registry = utils::create_registry(&cargo_config, &args.common.registry)?;
-    let packages = utils::list_registry_packages(&cargo_config, &args.common, &workspace)?;
+    let packages = utils::workspace_packages(&cargo_config, &args.common, &workspace)?;
 
     utils::update_index(&cargo_config, &mut registry)?;
 

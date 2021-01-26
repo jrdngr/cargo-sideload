@@ -16,20 +16,20 @@ use crate::{args::CargoSideloadFetchArgs, utils};
 
 pub fn fetch(args: CargoSideloadFetchArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
-
-    let mut downloader = Downloader::new(&cargo_config, &args)?;
-
     let manifest_path = canonicalize(args.common.path.join("Cargo.toml"))?;
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 
-    for package_id in utils::list_registry_packages(&cargo_config, &args.common, &workspace)? {
+    let mut downloader = Downloader::new(&cargo_config, &args)?;
+
+    for package_id in utils::workspace_packages(&cargo_config, &args.common, &workspace)? {
         downloader.download(&package_id.name(), &package_id.version().to_string())?;
     }
 
     Ok(())
 }
 
-pub struct Downloader<'cfg> {
+/// Downloads packages from a particular registry
+struct Downloader<'cfg> {
     config: &'cfg CargoConfig,
     registry: RegistrySource<'cfg>,
     client: reqwest::blocking::Client,
@@ -55,6 +55,7 @@ impl<'cfg> Downloader<'cfg> {
         })
     }
 
+    /// Download the specified version of a package.
     pub fn download(&mut self, name: &str, version: &str) -> anyhow::Result<()> {
         let source_id = self.registry.source_id();
         let package_id = PackageId::new(name, version, source_id)?;
@@ -108,11 +109,13 @@ impl<'cfg> Downloader<'cfg> {
         Ok(())
     }
 
+    /// Package cache path for the specified registry
     fn target_dir(&self, source_id: SourceId) -> Filesystem {
-        let registry_name = utils::registry_name(source_id);
-        self.config.registry_cache_path().join(&registry_name)
+        let registry_directory = utils::registry_directory(source_id);
+        self.config.registry_cache_path().join(&registry_directory)
     }
 
+    /// Deletes an existing cached package file
     fn delete_existing(&self, source_id: SourceId, package_id: PackageId) -> anyhow::Result<()> {
         let name = package_id.name();
         let version = package_id.version().to_string();

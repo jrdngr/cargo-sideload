@@ -4,6 +4,7 @@ use std::{collections::HashMap, convert::TryFrom, fmt::Display, str::FromStr};
 pub const CONFIG_FILE_DIR: &str = "cargo-sideload";
 pub const CONFIG_FILE_NAME: &str = "config.toml";
 
+/// Represents the entire persistent config file
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     pub default_registry: Option<String>,
@@ -28,11 +29,13 @@ impl Config {
     }
 }
 
+/// Configureation for an individual registry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryConfig {
     pub headers: Vec<Header>,
 }
 
+/// Header name and value with the string representation `[Header-Name]: [Header Value]`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(try_from = "&str")]
 #[serde(into = "String")]

@@ -21,14 +21,25 @@ pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
 
     let mut has_outdated_packages = false;
 
-    for package_id in packages {
+    'package: for package_id in packages {
+        let current_version = package_id.version().to_string();
         let entries = PackageEntry::from_name(&cargo_config, &registry, &package_id.name())?;
-        match entries.iter().max() {
+
+        for entry in entries.iter() {
+            if entry.yanked && current_version == entry.version.to_string() {
+                println!("{} {} -> yanked", entry.name, entry.version);
+                has_outdated_packages = true;
+                continue 'package;
+            }
+        }
+
+        let latest_entry = entries.into_iter().filter(|entry| !entry.yanked).max();
+
+        match latest_entry {
             Some(latest) => {
                 // Got a weird comparison error here
                 // TODO Fix server::Version mismatch
                 let latest_version = latest.version.to_string();
-                let current_version = package_id.version().to_string();
 
                 if current_version != latest_version {
                     has_outdated_packages = true;

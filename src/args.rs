@@ -11,7 +11,23 @@ pub enum CargoSideloadArgs {
     /// List published version numbers for the specified crate. Does not include yanked versions.
     List(CargoSideloadListArgs),
     /// List all crates associated with this registry that have newer versions available.
-    Outdated(CargoSideloadCommonArgs),
+    Outdated(CargoSideloadOutdatedArgs),
+}
+#[derive(Clap, Debug, Clone)]
+pub struct CargoSideloadCommonArgs {
+    #[clap(
+        short = 'r',
+        long = "registry",
+        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
+    )]
+    /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
+    pub registry: String,
+    #[clap(long = "path", default_value = ".")]
+    /// Path to the `Cargo.toml` file of the crate you're running this command on.
+    pub path: PathBuf,
+    #[clap(short = 'p', long = "packages")]
+    /// Comma separated list of crates to download
+    pub packages: Option<Vec<String>>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -47,20 +63,12 @@ pub struct CargoSideloadListArgs {
 }
 
 #[derive(Clap, Debug, Clone)]
-pub struct CargoSideloadCommonArgs {
-    #[clap(
-        short = 'r',
-        long = "registry",
-        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
-    )]
-    /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
-    pub registry: String,
-    #[clap(long = "path", default_value = ".")]
-    /// Path to the `Cargo.toml` file of the crate you're running this command on.
-    pub path: PathBuf,
-    #[clap(short = 'p', long = "packages")]
-    /// Comma separated list of crates to download
-    pub packages: Option<Vec<String>>,
+pub struct CargoSideloadOutdatedArgs {
+    #[clap(flatten)]
+    pub common: CargoSideloadCommonArgs,
+    #[clap(long)]
+    /// Returns an error if any dependencies are out of date
+    pub error: bool,
 }
 
 impl CargoSideloadArgs {

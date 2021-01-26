@@ -23,12 +23,19 @@ pub fn outdated(args: CargoSideloadCommonArgs) -> anyhow::Result<()> {
         let entries = PackageEntry::from_name(&cargo_config, &registry, &package_id.name())?;
         match entries.iter().max() {
             Some(latest) => {
-                println!(
-                    "{} {} -> {}",
-                    package_id.name(),
-                    package_id.version(),
-                    latest.version
-                );
+                // Got a weird comparison error here
+                // TODO Fix server::Version mismatch
+                let latest_version = latest.version.to_string();
+                let current_version = package_id.version().to_string();
+
+                if current_version != latest_version {
+                    println!(
+                        "{} {} -> {}",
+                        package_id.name(),
+                        package_id.version(),
+                        latest.version
+                    );    
+                }
             }
             None => println!("Package not found"),
         }

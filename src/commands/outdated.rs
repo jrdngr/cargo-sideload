@@ -37,7 +37,7 @@ pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
                         package_id.name(),
                         package_id.version(),
                         latest.version
-                    );    
+                    );
                 }
             }
             None => println!("Package not found"),

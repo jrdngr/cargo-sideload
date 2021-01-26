@@ -4,7 +4,6 @@ use cargo::{
     core::{
         resolver::EncodableResolve, Dependency, PackageId, Resolve, Source, SourceId, Workspace,
     },
-    ops::registry_configuration,
     sources::RegistrySource,
     Config as CargoConfig,
 };
@@ -30,7 +29,7 @@ pub fn create_registry<'cfg>(
 }
 
 pub fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
-    match registry_configuration(config, Some(registry_name.into()))?.index {
+    match cargo::ops::registry_configuration(config, Some(registry_name.into()))?.index {
         Some(index) => Ok(index),
         None => anyhow::bail!(
             "No index available for registry named \"{}\"",
@@ -74,7 +73,12 @@ pub fn list_registry_packages<'cfg>(
     args: &CargoSideloadCommonArgs,
     workspace: &Workspace<'cfg>,
 ) -> anyhow::Result<Vec<PackageId>> {
-    let lock_file_path = canonicalize(args.path.join("Cargo.lock"))?;
+    let lock_file_path = args.path.join("Cargo.lock");
+    if !lock_file_path.exists() {
+        cargo::ops::generate_lockfile(workspace)?;
+    }
+
+    let lock_file_path = canonicalize(lock_file_path)?;
     let lock_file = parse_lockfile(&lock_file_path, &workspace)?;
 
     let registry_index_url = registry_index_url(config, &args.registry)?;

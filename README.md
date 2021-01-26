@@ -24,11 +24,10 @@ of useful information about working with alternative registries.
    ```toml
    my_lib = { version = "1.0", registry = "test_registry" }
    ```
-3. Run `cargo update` to let cargo sort out your dependencies and update your `Cargo.lock` file.
-4. Run `cargo sideload fetch --registry=[registry-name]` in your crate's root.
+3. Run `cargo sideload fetch --registry=[registry-name]` in your crate's root.
    - Use the `--headers` argument if your download endpoint requires authentication or other headers.  
    Header format: `[Header-Name]: [Header Value]`.
-5. Your crates are now in the local cargo cache. `cargo` will use the local copies
+4. Your crates are now in the local cargo cache. `cargo` will use the local copies
    rather than attempt to download them.
 
 # Subsequent runs

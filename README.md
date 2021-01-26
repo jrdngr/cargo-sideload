@@ -98,6 +98,3 @@ Caused by:
 Caused by:
   failed to fill whole buffer
 ```
-
-## Remaining Work 
-1. Validate crate file (e.g. ensure it's not just a login page).

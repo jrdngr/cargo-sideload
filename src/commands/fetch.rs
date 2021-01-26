@@ -54,15 +54,12 @@ impl<'cfg> Downloader<'cfg> {
         let package_id = PackageId::new(name, version, source_id)?;
 
         if self.args.force {
-            self.delete_existing(source_id, package_id)?;
+            self.delete_existing(package_id)?;
         }
 
-        let result = {
-            let _package_cache_lock = self.config.acquire_package_cache_lock()?;
-            self.registry.download(package_id)?
-        };
+        let maybe_package = self.download_crate_file(package_id)?;
 
-        match result {
+        match maybe_package {
             MaybePackage::Ready(_) => println!("{}-{} is already cached.", name, version),
             MaybePackage::Download { url, .. } => {
                 println!("Downloading: {}", url);
@@ -96,10 +93,29 @@ impl<'cfg> Downloader<'cfg> {
                     std::fs::write(file_path, body)?;
                     println!("Downloaded: {:?}", file_path);
                 }
+
+                // The code to unpack the crate is private, but we can trigger it by calling `Source::download` again.
+                // This will see that the cached file is already present and attempt to unpack it.
+                self.download_crate_file(package_id)?;
             }
         }
 
         Ok(())
+    }
+
+    fn download_crate_file(&mut self, package_id: PackageId) -> anyhow::Result<MaybePackage> {
+        let _package_cache_lock = self.config.acquire_package_cache_lock()?;
+        let result = self.registry.download(package_id);
+
+        if result.is_err() {
+            println!(
+                "Failed to unpack crate file for {}. Double check your download url and headers.",
+                package_id.name()
+            );
+            self.delete_existing(package_id)?;
+        }
+
+        result
     }
 
     /// Package cache path for the specified registry
@@ -109,12 +125,12 @@ impl<'cfg> Downloader<'cfg> {
     }
 
     /// Deletes an existing cached package file
-    fn delete_existing(&self, source_id: SourceId, package_id: PackageId) -> anyhow::Result<()> {
+    fn delete_existing(&self, package_id: PackageId) -> anyhow::Result<()> {
         let name = package_id.name();
         let version = package_id.version().to_string();
 
         let file_name = format!("{}-{}.crate", name, version);
-        let file_lock = self.target_dir(source_id).open_rw(
+        let file_lock = self.target_dir(self.registry.source_id()).open_rw(
             file_name,
             &self.config,
             "Waiting for file lock...",

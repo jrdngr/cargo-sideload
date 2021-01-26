@@ -7,7 +7,7 @@ edition = "2018"
 license = "MIT"
 repository = "https://github.com/picklenerd/cargo-sideload"
 homepage = "https://github.com/picklenerd/cargo-sideload"
-documentation = "https://docs.rs/crate/cargo-sideload/0.1.0"
+documentation = "https://docs.rs/crate/cargo-sideload/0.6.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -22,6 +22,7 @@ log = "0.4"
 pretty_env_logger = "0.4"
 reqwest = { version = "0.11", features = ["blocking"] }
 semver = { version = "0.11.0", features = ["serde"] }
+# Newer versions of serde trigger an error in the cargo crate
 serde = { version = "=1.0.119", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.5"

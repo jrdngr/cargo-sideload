@@ -1,3 +1,6 @@
+[![crates.io](https://img.shields.io/crates/v/cargo-sideload)](https://crates.io/crates/cargo-sideload)
+[![docs.rs](https://docs.rs/cargo-sideload/badge.svg)](https://docs.rs/crate/cargo-sideload/)
+
 **WARNING:** Be careful with your access tokens.
 
 `cargo-sideload` downloads crates from an alternative registry and stores them in your Cargo cache

@@ -69,6 +69,7 @@ impl<'cfg> Downloader<'cfg> {
         Ok(())
     }
 
+    /// Checks if the .crate file is already in the cache. If it is, it will also be unpacked by Cargo.
     fn package_status(&mut self, package_id: PackageId) -> anyhow::Result<MaybePackage> {
         let _package_cache_lock = self.config.acquire_package_cache_lock()?;
         // This method won't actually start a download.
@@ -86,6 +87,7 @@ impl<'cfg> Downloader<'cfg> {
         result
     }
 
+    /// Perform the actual download
     fn download_package(&mut self, package_id: PackageId, url: &str) -> anyhow::Result<()> {
         println!("Downloading: {}", url);
 

@@ -22,12 +22,14 @@ pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
     let _package_cache_lock = cargo_config.acquire_package_cache_lock()?;
 
     for package_id in packages {
+        // Check if the package is yanked
         if registry.is_yanked(package_id)? {
             println!("{} {} -> yanked", package_id.name(), package_id.version());
             has_outdated_packages = true;
             continue;
         }
 
+        // Check if the version number is behind the latest
         let summaries = utils::package_summaries(&cargo_config, &mut registry, &package_id.name())?;
         let latest_version_summary = utils::latest_version(&summaries);
 

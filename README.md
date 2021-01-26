@@ -101,6 +101,3 @@ Caused by:
 
 ## Remaining Work 
 1. Validate crate file (e.g. ensure it's not just a login page).
-2. Refactor for testability and write tests.
-3. Improve console output.
-4. Write a blog post explaining how to make an alternative registry using `git`, along with `cargo-sideload` and `cargo-index`.

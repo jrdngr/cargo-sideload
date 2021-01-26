@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs::canonicalize};
+use std::fs::canonicalize;
 
 use cargo::{
     core::{
@@ -10,7 +10,6 @@ use cargo::{
     util::{config::Config as CargoConfig, Filesystem},
 };
 use log::debug;
-use url::Url;
 
 use crate::{args::CargoSideloadFetchArgs, utils};
 
@@ -38,13 +37,7 @@ struct Downloader<'cfg> {
 
 impl<'cfg> Downloader<'cfg> {
     pub fn new(config: &'cfg CargoConfig, args: &CargoSideloadFetchArgs) -> anyhow::Result<Self> {
-        let index_url = utils::registry_index_url(&config, &args.common.registry)?;
-        let url = Url::parse(&index_url)?;
-
-        let source_id = SourceId::for_registry(&url)?;
-
-        let yanked_whitelist = HashSet::new();
-        let registry = RegistrySource::remote(source_id, &yanked_whitelist, config);
+        let registry = utils::create_registry(&config, &args.common.registry)?;
         let client = reqwest::blocking::Client::new();
 
         Ok(Self {

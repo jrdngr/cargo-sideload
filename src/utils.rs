@@ -29,30 +29,6 @@ pub fn create_registry<'cfg>(
     ))
 }
 
-pub fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
-    let registry_config = cargo::ops::registry_configuration(config, Some(registry_name.into()))?;
-
-    match registry_config.index {
-        Some(index) => Ok(index),
-        None => anyhow::bail!(
-            "No index available for registry named \"{}\"",
-            registry_name
-        ),
-    }
-}
-
-pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
-    path: P,
-    workspace: &Workspace<'cfg>,
-) -> anyhow::Result<Resolve> {
-    let toml_string = std::fs::read_to_string(path.as_ref())?;
-    let toml: toml::Value =
-        cargo::util::toml::parse(&toml_string, path.as_ref(), workspace.config())?;
-
-    let encodable_resolve: EncodableResolve = toml.try_into()?;
-    Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
-}
-
 /// Updates the local copy of a registry index
 pub fn update_index<S: Source>(config: &CargoConfig, source: &mut S) -> anyhow::Result<()> {
     let _package_cache_lock = config.acquire_package_cache_lock()?;
@@ -121,27 +97,26 @@ pub fn registry_directory(id: SourceId) -> String {
     format!("{}-{}", ident, hash)
 }
 
-/// Returns the directory structure for the specified package name.
-/// This directory structure is defined by the Cargo index spec
-/// This function is copy/pasted from a private function in Cargo.
-pub fn package_dir(package_name: &str) -> String {
-    match package_name.len() {
-        1 => "1".to_string(),
-        2 => "2".to_string(),
-        3 => format!("3/{}", &package_name[..1]),
-        _ => format!("{}/{}", &package_name[0..2], &package_name[2..4]),
+fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
+    let registry_config = cargo::ops::registry_configuration(config, Some(registry_name.into()))?;
+
+    match registry_config.index {
+        Some(index) => Ok(index),
+        None => anyhow::bail!(
+            "No index available for registry named \"{}\"",
+            registry_name
+        ),
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn parse_lockfile<'cfg, P: AsRef<Path>>(
+    path: P,
+    workspace: &Workspace<'cfg>,
+) -> anyhow::Result<Resolve> {
+    let toml_string = std::fs::read_to_string(path.as_ref())?;
+    let toml: toml::Value =
+        cargo::util::toml::parse(&toml_string, path.as_ref(), workspace.config())?;
 
-    #[test]
-    fn test_package_dir() {
-        assert_eq!("1", package_dir("m"));
-        assert_eq!("2", package_dir("my"));
-        assert_eq!("3/m", package_dir("my_"));
-        assert_eq!("my/_l", package_dir("my_lib"));
-    }
+    let encodable_resolve: EncodableResolve = toml.try_into()?;
+    Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
 }

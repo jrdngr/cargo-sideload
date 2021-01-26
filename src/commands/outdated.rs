@@ -1,8 +1,11 @@
 use std::fs::canonicalize;
 
-use cargo::{core::Workspace, util::config::Config as CargoConfig};
+use cargo::{
+    core::{source::Source, Workspace},
+    util::config::Config as CargoConfig,
+};
 
-use crate::{args::CargoSideloadOutdatedArgs, package_entry::PackageEntry, utils};
+use crate::{args::CargoSideloadOutdatedArgs, utils};
 
 pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
@@ -10,48 +13,37 @@ pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 
     let mut registry = utils::create_registry(&cargo_config, &args.common.registry)?;
-
     let packages = utils::list_registry_packages(&cargo_config, &args.common, &workspace)?;
-    let package_names: Vec<String> = packages
-        .iter()
-        .map(|package_id| package_id.name().to_string())
-        .collect();
 
-    utils::update_index_packages(&cargo_config, &mut registry, &package_names)?;
+    utils::update_index(&cargo_config, &mut registry)?;
 
     let mut has_outdated_packages = false;
 
-    'package: for package_id in packages {
-        let current_version = package_id.version().to_string();
-        let entries = PackageEntry::from_name(&cargo_config, &registry, &package_id.name())?;
+    let _package_cache_lock = cargo_config.acquire_package_cache_lock()?;
 
-        for entry in entries.iter() {
-            if entry.yanked && current_version == entry.version.to_string() {
-                println!("{} {} -> yanked", entry.name, entry.version);
-                has_outdated_packages = true;
-                continue 'package;
-            }
+    for package_id in packages {
+        if registry.is_yanked(package_id)? {
+            println!("{} {} -> yanked", package_id.name(), package_id.version());
+            has_outdated_packages = true;
+            continue;
         }
 
-        let latest_entry = entries.into_iter().filter(|entry| !entry.yanked).max();
+        let summaries = utils::package_summaries(&cargo_config, &mut registry, &package_id.name())?;
+        let latest_version_summary = utils::latest_version(&summaries);
 
-        match latest_entry {
+        match latest_version_summary {
             Some(latest) => {
-                // Got a weird comparison error here
-                // TODO Fix server::Version mismatch
-                let latest_version = latest.version.to_string();
-
-                if current_version != latest_version {
+                if package_id.version() < latest.version() {
                     has_outdated_packages = true;
                     println!(
                         "{} {} -> {}",
                         package_id.name(),
                         package_id.version(),
-                        latest.version
+                        latest.version()
                     );
                 }
             }
-            None => println!("Package not found"),
+            None => println!("Package {} not found", package_id.name()),
         }
     }
 

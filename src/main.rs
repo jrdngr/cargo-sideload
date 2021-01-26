@@ -1,7 +1,6 @@
 mod args;
 pub mod commands;
 pub mod config;
-pub mod package_entry;
 pub mod utils;
 
 use crate::{args::CargoSideloadArgs, config::Config};

@@ -2,7 +2,8 @@ use std::{collections::HashSet, fs::canonicalize, path::Path};
 
 use cargo::{
     core::{
-        resolver::EncodableResolve, Dependency, PackageId, Resolve, Source, SourceId, Workspace,
+        resolver::EncodableResolve, Dependency, PackageId, Resolve, Source, SourceId, Summary,
+        Workspace,
     },
     sources::RegistrySource,
     Config as CargoConfig,
@@ -50,22 +51,29 @@ pub fn parse_lockfile<'cfg, P: AsRef<Path>>(
     Ok(encodable_resolve.into_resolve(&toml_string, workspace)?)
 }
 
-pub fn update_index_packages<S: Source>(
-    config: &CargoConfig,
-    source: &mut S,
-    packages: &[String],
-) -> anyhow::Result<()> {
+pub fn update_index<S: Source>(config: &CargoConfig, source: &mut S) -> anyhow::Result<()> {
     let _package_cache_lock = config.acquire_package_cache_lock()?;
     // Fetch the updated index repo
-    source.update()?;
+    source.update()
+}
 
-    // Query the dependencies to create/update the file we're going to read below
-    for package in packages {
-        let dep = Dependency::new_override(package.into(), source.source_id());
-        source.query(&dep, &mut |_| {})?;
-    }
+pub fn package_summaries<S: Source>(
+    config: &CargoConfig,
+    source: &mut S,
+    package: &str,
+) -> anyhow::Result<Vec<Summary>> {
+    let _package_cache_lock = config.acquire_package_cache_lock()?;
 
-    Ok(())
+    let mut summaries = Vec::new();
+
+    let dep = Dependency::new_override(package.into(), source.source_id());
+    source.query(&dep, &mut |summary| summaries.push(summary))?;
+
+    Ok(summaries)
+}
+
+pub fn latest_version(summaries: &[Summary]) -> Option<&Summary> {
+    summaries.iter().max_by_key(|summary| summary.version())
 }
 
 pub fn list_registry_packages<'cfg>(

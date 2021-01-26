@@ -54,12 +54,9 @@ pub struct CargoSideloadListArgs {
     pub registry: String,
     /// Name of the crate whose version numbers will be returned
     pub name: String,
-    #[clap(long, conflicts_with = "yanked")]
+    #[clap(long)]
     /// Only return the latest version number
     pub latest: bool,
-    #[clap(long)]
-    /// Returns all yanked version numbers
-    pub yanked: bool,
 }
 
 #[derive(Clap, Debug, Clone)]

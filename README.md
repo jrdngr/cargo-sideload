@@ -1,18 +1,17 @@
-**WARNING:** This crate makes it very easy to do dumb things with your access tokens, like put them in CI scripts.
-Be careful.
+**WARNING:** Be careful with your access tokens.
 
 `cargo-sideload` downloads crates from an alternative registry and stores them in your Cargo cache
-as if they were downloaded by Cargo directly.
-
-`cargo-sideload` makes a simple `GET` request with whatever headers you tell it to use. The primary use case is
-downloading crates from an authenticated endpoint, a feature that Cargo does not currently support.
+as if they were downloaded by Cargo directly. It makes a simple `GET` request with whatever headers you tell it to use. 
+The primary use case is downloading crates from an authenticated endpoint, a feature that Cargo does not currently support.
 It is meant to be a temporary workaround until [this feature](https://github.com/rust-lang/rfcs/pull/2719) is added to Cargo.
 
 [Cargo's documentation](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) has lots
 of useful information about working with alternative registries. 
 
+
 # Installation
 `cargo install cargo-sideload`
+
 
 # First run
 1. Add your alternate registry to `~/.cargo/config.toml`.
@@ -26,7 +25,7 @@ of useful information about working with alternative registries.
    ```
 3. Run `cargo sideload fetch --registry=[registry-name]` in your crate's root.
    - Use the `--headers` argument if your download endpoint requires authentication or other headers.  
-   Header format: `[Header-Name]: [Header Value]`.
+   *Header format*: `[Header-Name]: [Header Value]`.
 4. Your crates are now in the local cargo cache. `cargo` will use the local copies
    rather than attempt to download them.
 
@@ -39,13 +38,15 @@ of useful information about working with alternative registries.
 # More Info
 `cargo sideload --help` 
 
+
 # Config file
-Create the file `~/.config/cargo-sideload/config.toml`.
+A config file can be used to set a default registry and to associate headers with specific registries.
+This allows you to run commands like `cargo sideload fetch` without providing `--registry` and `--headers` arguments. 
 
-The config file can be used to set a default registry and to associate headers with specific registries.
-This allows you to run the command as `cargo sideload fetch` without providing `--registry` and `--headers` arguments. 
+To use a config, create the file `~/.config/cargo-sideload/config.toml`. All of the available config options are
+listed in the example below.
 
-```
+```toml
 default_registry = "test_registry"
   
 [registries.test_registry]
@@ -59,8 +60,8 @@ headers = [
 ```
 
 # Extra Tools
-`cargo-sideload` comes with a few extra tools for working with private registries. These extra commands are provided
-because existing tools don't always work with private registries.
+`cargo-sideload` comes with a few extra tools for working with private registries. These extra subcommands are provided
+because existing tools don't always work with private registries or authenticated download endpoints.
 
 `cargo sideload list [crate-name]` will list some information about each available version of the specified crate.
 Yanked versions are not included in the result. Using `--latest` will print the info for the latest version of the crate,
@@ -70,19 +71,24 @@ while `--latest-version` will only return the latest version number.
 in the specified registry. `--registry` is optional if you have a default registry set. A list of crates to check
 can be specified with `--packages`.
 
+
 # Troubleshooting
 
-`cargo-sideload` does not (currently) validate the crates that it downloads. If you type your
-authentication header wrong, you might end up in a situation where your downloaded `.crate` file
-is actually the HTML for a login page, or some similar situation.
+If you type your authentication header wrong, you might end up in a situation where your downloaded `.crate` file
+is actually the HTML for a login page, or some similar situation. `cargo-sideload` will tell Cargo to unpack your 
+`.crate` files after downloading them. If unpacking fails, you'll get an error and the downloaded file will be deleted.
 
-`cargo-sideload` doesn't download crates that are already in the cache, even if those crates are corrupt.
 If you find yourself in a situation where you want to force a new download, you can use the `--force` option.
 This will delete the existing file and download a new copy.
 
+`cargo-sideload` uses the `pretty_env_logger` crate to print debug info. Use `RUST_LOG=debug cargo sideload fetch`
+to see the details of the HTTP request and response for your file downloads. You will also see logs from Cargo and
+any other dependencies based on the value of `RUST_LOG`. See the [env_logger](https://docs.rs/env_logger/0.8.2/env_logger/)
+documentation for more details.
+
 If you try to run a normal Cargo command with a corrupt or otherwise invalid crate, 
 you'll get an error message something like the one below. If that happens, you most likely need to troubleshoot
-your download endpoint. Using `RUST_LOG=debug cargo sideload fetch --force` makes troubleshooting easier.
+your download endpoint or your headers. Enabling logs and using the `--force` option can make this much easier.
 
 ```
 error: failed to download `my_lib v0.1.0 (registry `https://github.com/picklenerd/test_registry`)`

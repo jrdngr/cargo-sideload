@@ -5,7 +5,7 @@ use cargo::{
         resolver::EncodableResolve, Dependency, PackageId, Resolve, Source, SourceId, Summary,
         Workspace,
     },
-    sources::RegistrySource,
+    sources::{RegistrySource, CRATES_IO_INDEX, CRATES_IO_REGISTRY},
     Config as CargoConfig,
 };
 use url::Url;
@@ -100,6 +100,10 @@ pub fn registry_directory(id: SourceId) -> String {
 }
 
 fn registry_index_url(config: &CargoConfig, registry_name: &str) -> anyhow::Result<String> {
+    if registry_name == CRATES_IO_REGISTRY {
+        return Ok(CRATES_IO_INDEX.to_owned());
+    }
+
     let registry_config = cargo::ops::registry_configuration(config, Some(registry_name.into()))?;
 
     match registry_config.index {

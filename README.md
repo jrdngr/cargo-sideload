@@ -3,10 +3,10 @@
 
 **WARNING:** Be careful with your access tokens.
 
-`cargo-sideload` downloads crates from an alternative registry and stores them in your Cargo cache
-as if they were downloaded by Cargo directly. It makes a simple `GET` request with whatever headers you tell it to use. 
-The primary use case is downloading crates from an authenticated endpoint, a feature that Cargo does not currently support.
+`cargo-sideload` is a toolkit for working with alternative Cargo registries. Its primary function is downloading
+crates from authenticated download endpoints, a feature that Cargo does not currently support.
 It is meant to be a temporary workaround until [this feature](https://github.com/rust-lang/rfcs/pull/2719) is added to Cargo.
+
 
 [Cargo's documentation](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) has lots
 of useful information about working with alternative registries. 
@@ -16,7 +16,7 @@ of useful information about working with alternative registries.
 `cargo install cargo-sideload`
 
 
-# First run
+# Usage
 1. Add your alternate registry to `~/.cargo/config.toml`.
    ```toml
    [registries]
@@ -29,14 +29,9 @@ of useful information about working with alternative registries.
 3. Run `cargo sideload fetch --registry=[registry-name]` in your crate's root.
    - Use the `--headers` argument if your download endpoint requires authentication or other headers.  
    *Header format*: `[Header-Name]: [Header Value]`.
-4. Your crates are now in the local cargo cache. `cargo` will use the local copies
-   rather than attempt to download them.
+4. Your crates are now in the local Cargo cache. Running Cargo commands will work as usual. 
+5. If you add or update dependencies from your private registry you'll have to run `cargo sideload fetch` again. 
 
-# Subsequent runs
-1. If alternate registry dependencies have changed
-   1. Run `cargo update -p [crate-names]` to update your `Cargo.lock` file.
-   2. Run `cargo sideload fetch --registry=[registry-name]` to download updated dependencies.
-2. If alternate registry dependences have **not** changed, you don't have to do anything.
 
 # More Info
 `cargo sideload --help` 
@@ -77,6 +72,11 @@ can be specified with `--packages`.
 
 # Troubleshooting
 
+`cargo-sideload` uses the `pretty_env_logger` crate to print debug info. Use `RUST_LOG=debug cargo sideload fetch`
+to see the details of the HTTP request and response for your file downloads. You will also see logs from Cargo and
+any other dependencies based on the value of `RUST_LOG`. See the [env_logger](https://docs.rs/env_logger/0.8.2/env_logger/)
+documentation for more details.
+
 If you type your authentication header wrong, you might end up in a situation where your downloaded `.crate` file
 is actually the HTML for a login page, or some similar situation. `cargo-sideload` will tell Cargo to unpack your 
 `.crate` files after downloading them. If unpacking fails, you'll get an error and the downloaded file will be deleted.
@@ -84,14 +84,11 @@ is actually the HTML for a login page, or some similar situation. `cargo-sideloa
 If you find yourself in a situation where you want to force a new download, you can use the `--force` option.
 This will delete the existing file and download a new copy.
 
-`cargo-sideload` uses the `pretty_env_logger` crate to print debug info. Use `RUST_LOG=debug cargo sideload fetch`
-to see the details of the HTTP request and response for your file downloads. You will also see logs from Cargo and
-any other dependencies based on the value of `RUST_LOG`. See the [env_logger](https://docs.rs/env_logger/0.8.2/env_logger/)
-documentation for more details.
-
 If you try to run a normal Cargo command with a corrupt or otherwise invalid crate, 
 you'll get an error message something like the one below. If that happens, you most likely need to troubleshoot
-your download endpoint or your headers. Enabling logs and using the `--force` option can make this much easier.
+the download endpoint in your registry index or the headers in your request. Enabling logs and using the `--force` option 
+can make this troubleshooting process much easier.
+
 
 ```
 error: failed to download `my_lib v0.1.0 (registry `https://github.com/picklenerd/test_registry`)`

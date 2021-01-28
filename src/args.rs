@@ -28,6 +28,9 @@ pub struct CargoSideloadCommonArgs {
     #[clap(short = 'p', long = "packages")]
     /// List of crates to run this command on.
     pub packages: Option<Vec<String>>,
+    #[clap(short, long)]
+    /// Silence Cargo and other status messages
+    pub quiet: bool,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -56,6 +59,9 @@ pub struct CargoSideloadListArgs {
     #[clap(short, long = "version-only")]
     /// Only return version numbers
     pub version_only: bool,
+    #[clap(short, long)]
+    /// Silence Cargo and other status messages
+    pub quiet: bool,
 }
 
 #[derive(Clap, Debug, Clone)]

@@ -1,7 +1,7 @@
 use std::fs::canonicalize;
 
 use cargo::{
-    core::{source::Source, Workspace},
+    core::{source::Source, Verbosity, Workspace},
     util::config::Config as CargoConfig,
 };
 
@@ -9,6 +9,10 @@ use crate::{args::CargoSideloadOutdatedArgs, utils};
 
 pub fn outdated(args: CargoSideloadOutdatedArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
+    if args.common.quiet {
+        cargo_config.shell().set_verbosity(Verbosity::Quiet);
+    }
+
     let manifest_path = canonicalize(args.common.path.join("Cargo.toml"))?;
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 

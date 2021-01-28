@@ -4,7 +4,7 @@ use cargo::{
     core::{
         package_id::PackageId,
         source::{MaybePackage, Source},
-        Workspace,
+        Verbosity, Workspace,
     },
     sources::registry::RegistrySource,
     util::{config::Config as CargoConfig, Filesystem},
@@ -15,6 +15,10 @@ use crate::{args::CargoSideloadFetchArgs, utils};
 
 pub fn fetch(args: CargoSideloadFetchArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
+    if args.common.quiet {
+        cargo_config.shell().set_verbosity(Verbosity::Quiet);
+    }
+
     let manifest_path = canonicalize(args.common.path.join("Cargo.toml"))?;
     let workspace = Workspace::new(&manifest_path, &cargo_config)?;
 

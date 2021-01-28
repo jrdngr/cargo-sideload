@@ -1,9 +1,16 @@
-use cargo::{core::Summary, util::config::Config as CargoConfig};
+use cargo::{
+    core::{Summary, Verbosity},
+    util::config::Config as CargoConfig,
+};
 
 use crate::{args::CargoSideloadListArgs, utils};
 
 pub fn list(args: CargoSideloadListArgs) -> anyhow::Result<()> {
     let cargo_config = CargoConfig::default()?;
+    if args.quiet {
+        cargo_config.shell().set_verbosity(Verbosity::Quiet);
+    }
+
     let mut registry = utils::create_registry(&cargo_config, &args.registry)?;
 
     utils::update_index(&cargo_config, &mut registry)?;

@@ -29,7 +29,7 @@ pub struct CargoSideloadCommonArgs {
     /// List of crates to run this command on.
     pub packages: Option<Vec<String>>,
     #[clap(short, long)]
-    /// Silence Cargo and other status messages
+    /// Silence Cargo
     pub quiet: bool,
 }
 
@@ -60,7 +60,7 @@ pub struct CargoSideloadListArgs {
     /// Only return version numbers
     pub version_only: bool,
     #[clap(short, long)]
-    /// Silence Cargo and other status messages
+    /// Silence Cargo
     pub quiet: bool,
 }
 

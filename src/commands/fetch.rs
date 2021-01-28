@@ -93,7 +93,7 @@ impl<'cfg> Downloader<'cfg> {
 
     /// Perform the actual download
     fn download_package(&mut self, package_id: PackageId, url: &str) -> anyhow::Result<()> {
-        println!("Downloading: {}", url);
+        debug!("Downloading: {}", url);
 
         let mut request_builder = self.client.get(url);
         debug!("GET {}", url);
@@ -121,7 +121,12 @@ impl<'cfg> Downloader<'cfg> {
             let file_path = file_lock.path();
 
             std::fs::write(file_path, body)?;
-            println!("Downloaded: {:?}", file_path);
+            println!(
+                "{}-{} added to package cache",
+                package_id.name(),
+                package_id.version()
+            );
+            debug!("Download path: {:?}", file_path);
         }
 
         // The code to unpack the crate is private, but we can trigger it by calling `Source::download` again.
@@ -150,7 +155,7 @@ impl<'cfg> Downloader<'cfg> {
         let file_path = file_lock.path();
 
         std::fs::remove_file(file_path)?;
-        println!("Removed: {:?}", file_path);
+        debug!("Removed: {:?}", file_path);
 
         Ok(())
     }

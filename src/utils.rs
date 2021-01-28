@@ -62,7 +62,7 @@ pub fn workspace_packages<'cfg>(
     workspace: &Workspace<'cfg>,
 ) -> anyhow::Result<Vec<PackageId>> {
     cargo::ops::generate_lockfile(workspace)?;
-    
+
     let lock_file_path = args.path.join("Cargo.lock");
     let lock_file_path = canonicalize(lock_file_path)?;
     let lock_file = parse_lockfile(&lock_file_path, &workspace)?;

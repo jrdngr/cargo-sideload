@@ -29,10 +29,10 @@ impl Config {
     }
 }
 
-/// Configureation for an individual registry
+/// Configuration for an individual registry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryConfig {
-    pub headers: Vec<Header>,
+    pub default_headers: Vec<Header>,
 }
 
 /// Header name and value with the string representation `[Header-Name]: [Header Value]`
@@ -101,12 +101,12 @@ mod tests {
             default_registry = "test_registry"
     
             [registries.test_registry]
-            headers = [ "Authorization: Blah abcd1234" ] 
+            default_headers = [ "Authorization: Blah abcd1234" ] 
             
             [registries.other_registry]
-            headers = [ 
-                    "PRIVATE-KEY: abcdef",
-                    "Some-Other-Header: And its value",
+            default_headers = [ 
+                "PRIVATE-KEY: abcdef",
+                "Some-Other-Header: And its value",
             ]
         "#;
 
@@ -116,16 +116,16 @@ mod tests {
 
         let test_registry_config = config.registries.get("test_registry").unwrap();
 
-        let first_header = &test_registry_config.headers[0];
+        let first_header = &test_registry_config.default_headers[0];
         assert_eq!(first_header.name, "Authorization");
         assert_eq!(first_header.value, "Blah abcd1234");
 
         let other_registry_config = config.registries.get("other_registry").unwrap();
-        let header = &other_registry_config.headers[0];
+        let header = &other_registry_config.default_headers[0];
         assert_eq!(header.name, "PRIVATE-KEY");
         assert_eq!(header.value, "abcdef");
 
-        let second_header = &other_registry_config.headers[1];
+        let second_header = &other_registry_config.default_headers[1];
         assert_eq!(second_header.name, "Some-Other-Header");
         assert_eq!(second_header.value, "And its value");
     }

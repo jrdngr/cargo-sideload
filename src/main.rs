@@ -6,8 +6,8 @@ pub mod utils;
 use crate::{args::CargoSideloadArgs, config::Config};
 
 fn main() -> anyhow::Result<()> {
-    pretty_env_logger::init();
     dotenv::dotenv().ok();
+    pretty_env_logger::init();
 
     let config = Config::load()?.unwrap_or_default();
     let args = CargoSideloadArgs::load(&config);

@@ -96,20 +96,20 @@ impl<'cfg> Downloader<'cfg> {
         debug!("Downloading: {}", url);
 
         let mut request_builder = self.client.get(url);
-        debug!("GET {}", url);
 
         for header in &self.args.headers {
             request_builder = request_builder.header(&header.name, &header.value);
-            debug!("HEADER {}: {}", header.name, header.value);
         }
 
-        let response = request_builder.send()?;
+        let request = request_builder.build()?;
+        debug!("{:#?}", request);
+
+        let response = self.client.execute(request)?;
         debug!("{:#?}", response);
 
         let body = response.error_for_status()?.bytes()?;
         debug!("BODY");
         debug!("{}", String::from_utf8_lossy(&body));
-        debug!("END");
 
         let file_name = format!("{}-{}.crate", package_id.name(), package_id.version());
 

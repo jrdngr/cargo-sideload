@@ -15,11 +15,7 @@ pub enum CargoSideloadArgs {
 }
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadCommonArgs {
-    #[clap(
-        short = 'r',
-        long = "registry",
-        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
-    )]
+    #[clap(short = 'r', long = "registry", env = "CARGO_SIDELOAD_REGISTRY")]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
     #[clap(long = "path", default_value = ".")]
@@ -37,9 +33,9 @@ pub struct CargoSideloadCommonArgs {
 pub struct CargoSideloadFetchArgs {
     #[clap(flatten)]
     pub common: CargoSideloadCommonArgs,
-    #[clap(long)]
-    /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
-    /// Example: `Authorization: Bearer abcdefg12345`  
+    #[clap(long, env = "CARGO_SIDELOAD_HEADER", hide_env_values = true)]
+    /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.
+    /// Note that only one header can be set by environment variable.
     pub headers: Vec<Header>,
     #[clap(short, long)]
     /// Deletes any existing `.crate` file before downloading its replacement.
@@ -50,7 +46,7 @@ pub struct CargoSideloadFetchArgs {
 pub struct CargoSideloadListArgs {
     /// Name of the crate whose info will be returned
     pub name: String,
-    #[clap(short, long, env = "CARGO_SIDELOAD_DEFAULT_REGISTRY")]
+    #[clap(short, long, env = "CARGO_SIDELOAD_REGISTRY")]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
     #[clap(short, long)]
@@ -77,7 +73,7 @@ impl CargoSideloadArgs {
     pub fn load(config: &Config) -> Self {
         // Set the default registry from the user's config file before parsing the arguments
         if let Some(default_registry) = &config.default_registry {
-            std::env::set_var("CARGO_SIDELOAD_DEFAULT_REGISTRY", default_registry);
+            std::env::set_var("CARGO_SIDELOAD_REGISTRY", default_registry);
         }
 
         // Running `cargo sideload` will pass "sideload" as the first argument.
@@ -94,9 +90,12 @@ impl CargoSideloadArgs {
 
         // Add headers from the user's config file to the arg headers
         if let CargoSideloadArgs::Fetch(ref mut fetch_args) = &mut result {
-            if let Some(registry) = config.registries.get(&fetch_args.common.registry) {
-                for header in &registry.headers {
-                    fetch_args.headers.push(header.clone());
+            // Don't add default headers if headers are provided manually
+            if fetch_args.headers.is_empty() {
+                if let Some(registry) = config.registries.get(&fetch_args.common.registry) {
+                    for header in &registry.default_headers {
+                        fetch_args.headers.push(header.clone());
+                    }
                 }
             }
         }

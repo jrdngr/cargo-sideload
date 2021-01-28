@@ -7,7 +7,6 @@
 crates from authenticated download endpoints, a feature that Cargo does not currently support.
 It is meant to be a temporary workaround until [this feature](https://github.com/rust-lang/rfcs/pull/2719) is added to Cargo.
 
-
 [Cargo's documentation](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry) has lots
 of useful information about working with alternative registries. 
 
@@ -33,8 +32,31 @@ of useful information about working with alternative registries.
 5. If you add or update dependencies from your private registry you'll have to run `cargo sideload fetch` again. 
 
 
-# More Info
+### More Info
 `cargo sideload --help` 
+
+# Headers
+HTTP headers for the download request performed by `cargo sideload fetch` can be set a few ways. 
+
+### Command-line arguments
+The most straightforward way to set headers is to use the `--headers` argument followed by a comma-separated list of headers in the format
+`[Header-Name]: [Header Value]`. 
+
+Example: `cargo run -- fetch --headers "FIRST-HEADER: 1", "SECOND-HEADER: 2"`.
+
+### Environment Variables
+
+A single header can be set with the environment variable `CARGO_SIDELOAD_HEADER`. If you have a `.env` file in your
+current working directory, `cargo-sideload` will use it. The environment variable header will be overriden by any 
+headers passed to the `--headers` argument.
+
+Example: `CARGO_SIDELOAD_HEADER="MY-HEADER: 12345"`
+
+### Config file
+
+Default headers can be set in the `cargo-sideload` config file. These headers will only be used if there are no other
+headers available from the `--headers` argument or the `CARGO_SIDELOAD_HEADER` environment variable. See the section below
+on how to create a config file.
 
 
 # Config file
@@ -42,16 +64,16 @@ A config file can be used to set a default registry and to associate headers wit
 This allows you to run commands like `cargo sideload fetch` without providing `--registry` and `--headers` arguments. 
 
 To use a config, create the file `~/.config/cargo-sideload/config.toml`. All of the available config options are
-listed in the example below.
+listed in the example below. Default options are only used when command line arguments and environment variables are not set.
 
 ```toml
 default_registry = "test_registry"
   
 [registries.test_registry]
-headers = [ "Authorization: Blah abcd1234" ] 
+default_headers = [ "Authorization: Blah abcd1234" ] 
 
 [registries.other_registry]
-headers = [ 
+default_headers = [ 
         "PRIVATE-KEY: abcdef",
         "Some-Other-Header: And its value",
 ]

@@ -34,11 +34,11 @@ pub struct CargoSideloadCommonArgs {
 pub struct CargoSideloadFetchArgs {
     #[clap(flatten)]
     pub common: CargoSideloadCommonArgs,
-    #[clap(long = "headers")]
+    #[clap(long)]
     /// Headers to add to the download request in the format `[Header-Name]: [Header Value]`.  
     /// Example: `Authorization: Bearer abcdefg12345`  
     pub headers: Vec<Header>,
-    #[clap(long = "force")]
+    #[clap(short, long)]
     /// Deletes any existing `.crate` file before downloading its replacement.
     pub force: bool,
 }
@@ -47,26 +47,22 @@ pub struct CargoSideloadFetchArgs {
 pub struct CargoSideloadListArgs {
     /// Name of the crate whose info will be returned
     pub name: String,
-    #[clap(
-        short = 'r',
-        long = "registry",
-        env = "CARGO_SIDELOAD_DEFAULT_REGISTRY"
-    )]
+    #[clap(short, long, env = "CARGO_SIDELOAD_DEFAULT_REGISTRY")]
     /// Name of the registry as it is defined in your cargo config (usually `~/.cargo/config.toml`).
     pub registry: String,
-    #[clap(long)]
-    /// Only return the latest package
+    #[clap(short, long)]
+    /// Only return info for the latest version of the package
     pub latest: bool,
-    #[clap(long = "latest-version", conflicts_with = "latest")]
-    /// Only return the latest version number
-    pub latest_version: bool,
+    #[clap(short, long = "version-only")]
+    /// Only return version numbers
+    pub version_only: bool,
 }
 
 #[derive(Clap, Debug, Clone)]
 pub struct CargoSideloadOutdatedArgs {
     #[clap(flatten)]
     pub common: CargoSideloadCommonArgs,
-    #[clap(long)]
+    #[clap(short, long)]
     /// Returns an error if any dependencies are out of date
     pub error: bool,
 }

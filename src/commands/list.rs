@@ -10,19 +10,21 @@ pub fn list(args: CargoSideloadListArgs) -> anyhow::Result<()> {
     let summaries = utils::package_summaries(&cargo_config, &mut registry, &args.name)?;
 
     if args.latest {
-        print_latest(&summaries, false);
-    } else if args.latest_version {
-        print_latest(&summaries, true);
+        print_latest(&summaries, args.version_only);
     } else {
-        print_published(&summaries);
+        print_published(&summaries, args.version_only);
     }
 
     Ok(())
 }
 
-fn print_published(summaries: &[Summary]) {
+fn print_published(summaries: &[Summary], version_only: bool) {
     for summary in summaries {
-        print_summary(summary);
+        if version_only {
+            println!("{}", summary.version())
+        } else {
+            print_summary(summary);
+        }
     }
 }
 

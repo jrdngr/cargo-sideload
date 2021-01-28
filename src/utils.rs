@@ -47,6 +47,8 @@ pub fn package_summaries<S: Source>(
     let dep = Dependency::new_override(package.into(), source.source_id());
     source.query(&dep, &mut |summary| summaries.push(summary))?;
 
+    summaries.sort_by(|s1, s2| s1.version().cmp(s2.version()));
+
     Ok(summaries)
 }
 

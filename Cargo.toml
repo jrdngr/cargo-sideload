@@ -1,7 +1,7 @@
 [package]
 name = "cargo-sideload"
 description = "Tools for working with private Cargo registries"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Jordan Grace <jordan.t.grace@gmail.com>"]
 edition = "2018"
 license = "MIT"

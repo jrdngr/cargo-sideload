@@ -8,6 +8,7 @@ pub const CONFIG_FILE_NAME: &str = "config.toml";
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     pub default_registry: Option<String>,
+    #[serde(default)]
     pub registries: HashMap<String, RegistryConfig>,
 }
 
@@ -96,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn test_config() {
+    fn test_config_full() {
         let config_str = r#"
             default_registry = "test_registry"
     
@@ -128,5 +129,60 @@ mod tests {
         let second_header = &other_registry_config.default_headers[1];
         assert_eq!(second_header.name, "Some-Other-Header");
         assert_eq!(second_header.value, "And its value");
+    }
+
+    #[test]
+    fn test_config_with_default_registry_only() {
+        let config_str = r#"
+            default_registry = "test_registry"
+        "#;
+
+        let config: Config = toml::from_str(config_str).unwrap();
+
+        assert_eq!(config.default_registry, Some("test_registry".to_string()));
+        assert!(config.registries.is_empty());
+    }
+
+    #[test]
+    fn test_config_with_default_headers_only() {
+        let config_str = r#"
+            [registries.test_registry]
+            default_headers = [ "Authorization: Blah abcd1234" ] 
+            
+            [registries.other_registry]
+            default_headers = [ 
+                "PRIVATE-KEY: abcdef",
+                "Some-Other-Header: And its value",
+            ]
+        "#;
+
+        let config: Config = toml::from_str(config_str).unwrap();
+
+        assert!(config.default_registry.is_none());
+
+        let test_registry_config = config.registries.get("test_registry").unwrap();
+
+        let first_header = &test_registry_config.default_headers[0];
+        assert_eq!(first_header.name, "Authorization");
+        assert_eq!(first_header.value, "Blah abcd1234");
+
+        let other_registry_config = config.registries.get("other_registry").unwrap();
+        let header = &other_registry_config.default_headers[0];
+        assert_eq!(header.name, "PRIVATE-KEY");
+        assert_eq!(header.value, "abcdef");
+
+        let second_header = &other_registry_config.default_headers[1];
+        assert_eq!(second_header.name, "Some-Other-Header");
+        assert_eq!(second_header.value, "And its value");
+    }
+
+    #[test]
+    fn test_config_empty() {
+        let config_str = "";
+
+        let config: Config = toml::from_str(config_str).unwrap();
+
+        assert!(config.default_registry.is_none());
+        assert!(config.registries.is_empty());
     }
 }
